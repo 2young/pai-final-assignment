@@ -10,7 +10,13 @@
   "walls": [
     {"id": "detour", "center": [0, -3], "size": [0.3, 7, 1]},
     {"id": "corner", "center": [2, 0.5], "size": [4, 0.3, 1]},
-    {"id": "dead_end", "center": [-2, 0.5], "size": [0.3, 3, 1]}
+    {"id": "dead_end", "center": [-2, 0.5], "size": [0.3, 3, 1]},
+    {"id": "west_wall", "center": [-8, 0], "size": [0.6, 3, 1]},
+    {"id": "north_barrier", "center": [0, 9.5], "size": [3, 0.4, 1]},
+    {"id": "northwest_block", "center": [-8, 8], "size": [1.2, 1.2, 1]},
+    {"id": "northeast_block", "center": [8, 8], "size": [1.2, 1.2, 1]},
+    {"id": "southwest_block", "center": [-8, -8], "size": [1.2, 1.2, 1]},
+    {"id": "southeast_block", "center": [8, -8], "size": [1.2, 1.2, 1]}
   ],
   "objects": [
     {"id": "red_box", "aliases": ["赤", "red", "red_box"], "center": [5, 4], "size": [0.6, 0.6, 0.8], "color": [1, 0, 0, 1]}
