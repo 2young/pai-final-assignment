@@ -3,7 +3,8 @@ import sys
 from types import SimpleNamespace as NS
 import pytest
 from grid_map import GridMap, load_config
-from object_tracker import ObjectTracker, runtime_config
+from object_tracker import ObjectTracker
+from scene_helpers import runtime_config
 from pose_provider import PoseProvider, WorldPose
 from target_resolver import plan_to_object
 

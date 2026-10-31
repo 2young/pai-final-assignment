@@ -4,6 +4,7 @@ import time
 from pose_provider import PoseProvider
 from motion_config import MotionSettings
 from route_metrics import MotionMetrics
+from ros_feedback import spin_some
 
 
 def steering(pose, goal, settings=MotionSettings()):
@@ -32,16 +33,14 @@ class Navigator:
                                                    (grid.config if grid is not None else {}))
 
     def current(self):
-        import rclpy
         deadline = time.monotonic()+10
         while time.monotonic() < deadline:
-            rclpy.spin_once(self.node, timeout_sec=0.1)
+            spin_some(self.node, timeout_sec=0.1)
             if self.provider.pose is not None:
                 return self.provider.current()
         raise RuntimeError('No world pose; start maze launcher and pose bridge')
 
     def follow(self, route, timeout=240, guard=None):
-        import rclpy
         from geometry_msgs.msg import Twist
         deadline = time.monotonic()+timeout
         minimum_clearance = math.inf
@@ -51,7 +50,7 @@ class Navigator:
             for index, goal in enumerate(route[1:], 1):
                 best, progress = math.inf, time.monotonic()
                 while True:
-                    rclpy.spin_once(self.node, timeout_sec=0.05)
+                    spin_some(self.node, timeout_sec=0.05)
                     if guard is not None:
                         guard()
                     pose = self.provider.current()
@@ -80,8 +79,7 @@ class Navigator:
                     time.sleep(0.03)
                 print(f'Waypoint {index}: {goal}, error={distance:.3f}m', flush=True)
             # Process observations that arrived while the final STOP was sent.
-            for _ in range(10):
-                rclpy.spin_once(self.node, timeout_sec=0)
+            spin_some(self.node)
             if guard is not None:
                 guard()
             final_pose = self.provider.current()

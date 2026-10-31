@@ -65,6 +65,9 @@ def main():
     from path_planner import route_score
     from adaptive_planner import adaptive_plan
     from boundary_entry import plan_boundary_entry,execute_boundary_entry
+    from contact_goal import footprint_free
+    from pose_provider import angle_difference
+    from ros_feedback import spin_some
     config = load_config()
     goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
     if goal_mode not in ('contact','stand_off'):
@@ -121,11 +124,13 @@ def main():
                 for monitor in contacts.values():
                     monitor.require_sensor()
 
-            def prepare_navigation():
+            def prepare_navigation(touch_target=None):
                 live = tracker.snapshot()
                 navigator.planning_pose = navigator.current()
                 start = navigator.planning_pose[:2]
                 tracker.assert_unchanged()
+                if not footprint_free(live,navigator.planning_pose,touch_target):
+                    raise ValueError('Robot footprint violates current obstacle / operating area clearance; reposition robot or obstacle')
                 return live, start
 
             def validate_plan_start(start):
@@ -136,9 +141,11 @@ def main():
                 while not all(p.received>=requested for p in providers):
                     if time.monotonic()-requested>3:
                         raise RuntimeError('No fresh pose after planning')
-                    rclpy.spin_once(node,timeout_sec=.05)
+                    spin_some(node,timeout_sec=.05)
                 tracker.assert_unchanged()
-                if math.dist(navigator.provider.current()[:2],start)>.05:
+                current=navigator.provider.current()
+                if (math.dist(current[:2],start)>.05 or
+                        abs(angle_difference(current[2],navigator.planning_pose[2]))>math.radians(3)):
                     raise RuntimeError('Robot moved while planning; issue command again')
 
         if args.goal is not None:
@@ -157,7 +164,7 @@ def main():
             navigator.follow(route, guard=tracker.assert_unchanged)
         for text, intent in results:
             if intent == "GO_TO_OBJECT":
-                live, start = prepare_navigation()
+                live, start = prepare_navigation(targets[text]['id'] if goal_mode=='contact' else None)
                 yaw=navigator.planning_pose[2]
                 target = next(o for o in live['objects'] if o['id'] == targets[text]['id'])
                 if goal_mode == 'contact' and contacts[target['id']].subscription.get_publisher_count() == 0:

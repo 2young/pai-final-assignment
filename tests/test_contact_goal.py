@@ -6,7 +6,7 @@ from types import SimpleNamespace as NS
 import pytest
 from contact_goal import footprint_free, plan_contact, ContactMonitor, target_ray_radius, touch, can_resume_touch
 from grid_map import GridMap,load_config
-from object_tracker import runtime_config
+from scene_helpers import runtime_config
 from pose_provider import WorldPose
 
 

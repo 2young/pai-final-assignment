@@ -32,14 +32,14 @@ def test_world_obstacles_match_config(tmp_path):
     for obj in cfg['walls']+cfg['objects']:
         model = world.find(f"model[@name='{obj['id']}']")
         publisher = model.find("plugin[@name='gz::sim::systems::PosePublisher']")
+        assert publisher.find('publish_model_pose').text == 'true'
+        assert publisher.find('update_frequency').text == '30'
         if obj in cfg['objects']:
-            assert publisher.find('publish_model_pose').text == 'true'
-            assert publisher.find('update_frequency').text == '30'
             sensor=model.find("link/sensor[@type='contact']")
             assert sensor.find('contact/collision').text == 'collision'
             assert sensor.find('contact/topic').text == f"/model/{obj['id']}/contact"
         else:
-            assert publisher is None
+            assert model.find("link/sensor[@type='contact']") is None
         assert list(map(float,model.find('pose').text.split()[:2])) == obj['center']
         for kind in ['collision','visual']:
             size = model.find(f'link/{kind}/geometry/box/size')

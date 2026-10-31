@@ -3,7 +3,7 @@ from types import SimpleNamespace as NS
 import sys
 import pytest
 from grid_map import GridMap,load_config
-from object_tracker import runtime_config
+from scene_helpers import runtime_config
 from pose_provider import WorldPose
 from adaptive_planner import adaptive_plan,planning_windows
 from planning_limits import PlanningSettings,PlanningLimitError

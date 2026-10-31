@@ -5,6 +5,7 @@ from contact_goal import footprint_free
 from pose_provider import angle_difference
 from navigator import stop
 from contact_speed import FEEDBACK_WALL_TIMEOUT
+from ros_feedback import spin_some
 
 
 def center_clear(config,point):
@@ -38,15 +39,14 @@ def plan_boundary_entry(config,pose):
 
 
 def execute_boundary_entry(navigator,config,entry,guard):
-    import rclpy
     from geometry_msgs.msg import Twist
     heading=entry['heading'];cx,cy=entry['goal'];sx,sy=entry['start'];sign=entry['sign']
     started=progress=time.monotonic();best=math.inf
     print(f'BOUNDARY_ENTRY: goal={entry["goal"]}, direction={"reverse" if sign<0 else "forward"}',flush=True)
     try:
-        for _ in range(10):rclpy.spin_once(navigator.node,timeout_sec=0)
+        spin_some(navigator.node)
         while True:
-            rclpy.spin_once(navigator.node,timeout_sec=.02);guard()
+            spin_some(navigator.node,timeout_sec=.02);guard()
             x,y,yaw=navigator.provider.current()
             if time.monotonic()-navigator.provider.received>FEEDBACK_WALL_TIMEOUT:
                 raise RuntimeError('Boundary entry pose missing or stale')
@@ -66,7 +66,7 @@ def execute_boundary_entry(navigator,config,entry,guard):
             msg.angular.z=float(max(-.15,min(.15,1.8*error)))
             navigator.pub.publish(msg);time.sleep(.02)
         stop(navigator.pub)
-        for _ in range(10):rclpy.spin_once(navigator.node,timeout_sec=0)
+        spin_some(navigator.node)
         guard()
         pose=navigator.provider.current()
         if math.dist(pose[:2],entry['goal'])>.05:

@@ -90,8 +90,7 @@ def generate(source, output, config):
         x, y = obj['center']
         sx, sy, sz = obj['size']
         ET.SubElement(model, 'pose').text = f'{x} {y} {sz/2} 0 0 0'
-        if obj in config['objects']:
-            add_pose_publisher(model)
+        add_pose_publisher(model)
         link = ET.SubElement(model, 'link', name='body')
         if obj in config['objects']:
             sensor = ET.SubElement(link, 'sensor', name='contact_sensor', type='contact')

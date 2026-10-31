@@ -9,6 +9,7 @@ from navigator import stop
 from route_metrics import MotionMetrics,simulation_time
 from motion_config import ContactSettings,MotionSettings
 from contact_speed import projected_gap,ApproachSpeedController,FEEDBACK_WALL_TIMEOUT
+from ros_feedback import spin_some
 
 
 def footprint_free(config, pose, target_id):
@@ -154,7 +155,6 @@ class ContactMonitor:
 
 
 def touch(navigator, config, target, monitor, guard, timeout=60):
-    import rclpy
     from geometry_msgs.msg import Twist
     cx,cy = target['center']
     started = time.monotonic()
@@ -168,10 +168,9 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
           f'touch_speed={controller.touch_speed}m/s',flush=True)
     try:
         # Drain updates received during the previous waypoint's STOP sequence.
-        for _ in range(10):
-            rclpy.spin_once(navigator.node,timeout_sec=0)
+        spin_some(navigator.node)
         while True:
-            rclpy.spin_once(navigator.node,timeout_sec=.02)
+            spin_some(navigator.node,timeout_sec=.02)
             guard()
             pose = navigator.provider.current()
             stamp=getattr(navigator.provider,'stamp',None)
