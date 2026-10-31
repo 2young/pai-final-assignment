@@ -11,11 +11,13 @@ def load_config(path=DEFAULT_CONFIG):
 
 
 class GridMap:
-    def __init__(self, config):
+    def __init__(self, config, tracking_margin=0):
         self.config = config
         self.bounds = config['bounds']
         self.resolution = config['resolution']
-        self.padding = config['robot']['radius'] + config['robot']['margin']
+        self.padding = config['robot']['radius'] + config['robot']['margin'] + tracking_margin
+        self.tracking_margin = tracking_margin
+        self._planning_view = None
         x0, y0, x1, y1 = self.bounds
         self.width = math.floor((x1-x0)/self.resolution)
         self.height = math.floor((y1-y0)/self.resolution)
@@ -66,7 +68,47 @@ class GridMap:
         x, y = cell
         return 0 <= x < self.width and 0 <= y < self.height and cell not in self.blocked
 
+    def planning_view(self):
+        """An extra 10cm for tracking; runtime safety retains its own grid."""
+        if self.tracking_margin:
+            return self
+        if self._planning_view is None:
+            self._planning_view = GridMap(self.config, tracking_margin=.10)
+        return self._planning_view
+
+    def segment_cells(self, a, b):
+        """Supercover: all closed cells touched, including exact edges/corners."""
+        if not all(math.isfinite(v) for v in (*a,*b)):
+            raise ValueError('Non-finite segment')
+        start = tuple((v-o)/self.resolution for v,o in zip(a,self.bounds[:2]))
+        end = tuple((v-o)/self.resolution for v,o in zip(b,self.bounds[:2]))
+        times = [0.,1.]
+        for p,q in zip(start,end):
+            if abs(q-p)>1e-12:
+                for k in range(math.floor(min(p,q)),math.ceil(max(p,q))+1):
+                    t=(k-p)/(q-p)
+                    if 0<t<1:
+                        times.append(t)
+        events=[]
+        for t in sorted(times):
+            if not events or t-events[-1]>1e-12:
+                events.append(t)
+        samples=events+[(p+q)/2 for p,q in zip(events,events[1:])]
+        covered=set()
+        for t in samples:
+            x,y=(p+(q-p)*t for p,q in zip(start,end))
+            def indices(value):
+                n=round(value)
+                return (n-1,n) if abs(value-n)<1e-9 else (math.floor(value),)
+            for i in indices(x):
+                for j in indices(y):
+                    covered.add((i,j))
+        return covered
+
     def segment_free(self, a, b):
-        n = max(1, math.ceil(math.dist(a, b)/(self.resolution/4)))
-        return all(self.free(self.cell((a[0]+(b[0]-a[0])*i/n,
-                                        a[1]+(b[1]-a[1])*i/n))) for i in range(n+1))
+        try:
+            if not self.free(self.cell(a)) or not self.free(self.cell(b)):
+                return False
+            return all(self.free(c) for c in self.segment_cells(a,b))
+        except ValueError:
+            return False

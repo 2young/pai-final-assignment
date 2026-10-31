@@ -2,9 +2,11 @@
 import math
 import subprocess
 import time
-from path_planner import plan
+from path_planner import plan,route_score
+from target_resolver import approach_candidates
 from pose_provider import angle_difference
 from navigator import stop
+from route_metrics import MotionMetrics
 
 CONTACT_SPEED = 0.10
 
@@ -71,35 +73,35 @@ def can_resume_touch(config, pose, target):
                for i in range(n+1))
 
 
-def plan_contact(grid, start, target):
+def plan_contact(grid, start, target, start_yaw=None):
     x,y = target['center']
-    sx,sy = target['size'][:2]
     choices = []
     # Nearby stand-off offsets avoid rejecting a feasible side solely because
     # its nominal goal falls in a conservatively occupied boundary grid cell.
-    for dx,dy,half in [(-1,0,sx/2),(1,0,sx/2),(0,-1,sy/2),(0,1,sy/2)]:
-        for extra in (.35,.25,.45):
-            distance = half+grid.padding+extra
-            approach = (x+dx*distance,y+dy*distance)
-            heading = math.atan2(-dy,-dx)
-            front = grid.config['robot']['footprint_bounds'][2]
-            radius = target_ray_radius(target,heading+math.pi)
-            travel = distance-radius-front+.08
-            n = max(1,math.ceil(travel/.02))
-            if not all(footprint_free(grid.config,
-                       (approach[0]+math.cos(heading)*travel*i/n,
-                        approach[1]+math.sin(heading)*travel*i/n,heading),target['id'])
-                       for i in range(n+1)):
-                continue
-            try:
-                route = plan(grid,start,approach)
-                choices.append(route)
-                break
-            except ValueError:
-                continue
+    accepted=set()
+    for approach,heading in approach_candidates(grid,target,start,start_yaw,extras=(.35,.25,.45,.15)):
+        key=round(heading,8)
+        if key in accepted:
+            continue
+        distance=math.dist(approach,(x,y))
+        front = grid.config['robot']['footprint_bounds'][2]
+        radius = target_ray_radius(target,heading+math.pi)
+        travel = distance-radius-front+.08
+        n = max(1,math.ceil(travel/.02))
+        if not all(footprint_free(grid.config,
+                   (approach[0]+math.cos(heading)*travel*i/n,
+                    approach[1]+math.sin(heading)*travel*i/n,heading),target['id'])
+                   for i in range(n+1)):
+            continue
+        try:
+            route = plan(grid,start,approach,start_yaw=start_yaw,final_yaw=heading)
+            choices.append((route,heading))
+            accepted.add(key)
+        except ValueError:
+            continue
     if not choices:
         raise ValueError('No reachable approach point with safe contact corridor')
-    return min(choices,key=lambda r:sum(math.dist(a,b) for a,b in zip(r,r[1:])))
+    return min(choices,key=lambda item:route_score(item[0],start_yaw,item[1]))[0]
 
 
 class ContactMonitor:
@@ -152,19 +154,22 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
     best,progress = math.inf,started
     aligned = False
     monitor.arm(getattr(navigator.provider,'stamp',None))
+    metrics=MotionMetrics()
     print(f'CONTACT approach: target={target["id"]}, speed={CONTACT_SPEED}m/s',flush=True)
     try:
         while True:
             rclpy.spin_once(navigator.node,timeout_sec=.02)
             guard()
             pose = navigator.provider.current()
+            metrics.observe_pose(pose)
             if not footprint_free(config,pose,target['id']):
                 raise RuntimeError('Contact approach would violate wall/boundary clearance')
             if monitor.hit:
                 stop(navigator.pub)
                 print(f'CONTACT_REACHED: target={target["id"]}, pose={pose}, '
-                      f'collisions={monitor.details}',flush=True)
-                return
+                      f'collisions={monitor.details}, rotation_episodes={metrics.episodes}, '
+                      f'total_yaw={math.degrees(metrics.rotation):.1f}deg',flush=True)
+                return metrics.summary()
             x,y,yaw = pose
             distance = math.dist((x,y),(cx,cy))
             heading = math.atan2(cy-y,cx-x)
@@ -185,6 +190,7 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
                     # Rotation occurs only at the collision-free stand-off point.
                     msg=Twist()
                     msg.angular.z=float(max(-.5,min(.5,1.8*error)))
+                    metrics.observe_command(0.,msg.angular.z)
                     navigator.pub.publish(msg)
                     time.sleep(.02)
                     continue
@@ -195,6 +201,7 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
             msg=Twist()
             msg.linear.x=CONTACT_SPEED
             msg.angular.z=float(max(-.15,min(.15,1.8*error)))
+            metrics.observe_command(msg.linear.x,msg.angular.z)
             navigator.pub.publish(msg)
             time.sleep(.02)
     finally:

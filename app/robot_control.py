@@ -62,7 +62,7 @@ def main():
         print(f"AI inference: {text!r} -> {intent}", flush=True)
     from grid_map import GridMap, load_config
     from target_resolver import resolve_target, plan_to_object
-    from path_planner import plan
+    from path_planner import plan,route_score
     config = load_config()
     goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
     if goal_mode not in ('contact','stand_off'):
@@ -118,19 +118,38 @@ def main():
             def prepare_navigation():
                 live = tracker.snapshot()
                 navigator.grid = GridMap(live)
-                start = navigator.current()[:2]
+                navigator.planning_pose = navigator.current()
+                start = navigator.planning_pose[:2]
                 tracker.assert_unchanged()
                 return live, start
 
+            def validate_plan_start(start):
+                # Planning can take longer than a pose's freshness window.
+                # Refresh observations without resetting the target baseline.
+                requested=time.monotonic()
+                providers=[navigator.provider,*tracker.providers.values()]
+                while not all(p.received>=requested for p in providers):
+                    if time.monotonic()-requested>3:
+                        raise RuntimeError('No fresh pose after planning')
+                    rclpy.spin_once(node,timeout_sec=.05)
+                tracker.assert_unchanged()
+                if math.dist(navigator.provider.current()[:2],start)>.05:
+                    raise RuntimeError('Robot moved while planning; issue command again')
+
         if args.goal is not None:
             _, start = prepare_navigation()
-            route = plan(navigator.grid, start, tuple(args.goal))
+            yaw=navigator.planning_pose[2]
+            route = plan(navigator.grid, start, tuple(args.goal),start_yaw=yaw)
+            score=route_score(route,yaw)
             length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
-            print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, waypoints={route}", flush=True)
+            print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, "
+                  f"planned_turns={score[0]}, waypoints={route}", flush=True)
+            validate_plan_start(start)
             navigator.follow(route, guard=tracker.assert_unchanged)
         for text, intent in results:
             if intent == "GO_TO_OBJECT":
                 live, start = prepare_navigation()
+                yaw=navigator.planning_pose[2]
                 target = next(o for o in live['objects'] if o['id'] == targets[text]['id'])
                 if goal_mode == 'contact' and contacts[target['id']].subscription.get_publisher_count() == 0:
                     raise RuntimeError('No ROS contact bridge; restart maze')
@@ -138,14 +157,22 @@ def main():
                         and can_resume_touch(live,navigator.provider.current(),target)):
                     touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged)
                     continue
-                route = (plan_contact(navigator.grid,start,target) if goal_mode == 'contact'
-                         else plan_to_object(navigator.grid,start,target))
+                route = (plan_contact(navigator.grid,start,target,start_yaw=yaw) if goal_mode == 'contact'
+                         else plan_to_object(navigator.grid,start,target,start_yaw=yaw))
+                final_yaw=(math.atan2(target['center'][1]-route[-1][1],
+                                     target['center'][0]-route[-1][0]) if goal_mode=='contact' else None)
+                score=route_score(route,yaw,final_yaw)
                 length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
                 print(f"A*: start={start}, goal={route[-1]}, target={targets[text]['id']}, "
-                      f"length={length:.2f}m, waypoints={route}", flush=True)
-                navigator.follow(route, guard=tracker.assert_unchanged)
+                      f"length={length:.2f}m, planned_turns={score[0]}, "
+                      f"planned_yaw={math.degrees(score[2]):.1f}deg, waypoints={route}", flush=True)
+                validate_plan_start(start)
+                phases=[navigator.follow(route, guard=tracker.assert_unchanged)]
                 if goal_mode == 'contact':
-                    touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged)
+                    phases.append(touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged))
+                print(f"NAVIGATION_SUMMARY: planned_turns={score[0]}, "
+                      f"rotation_episodes={sum(p['rotation_episodes'] for p in phases)}, "
+                      f"total_yaw={sum(p['total_yaw_degrees'] for p in phases):.1f}deg",flush=True)
                 continue
             linear, angular, duration = MOTIONS[intent]
             print(f"Executing {intent} (linear={linear}, angular={angular})", flush=True)

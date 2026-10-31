@@ -1,7 +1,7 @@
 """Resolve registered metadata only. This is not camera-based recognition."""
 import math
 import re
-from path_planner import plan
+from path_planner import plan,route_score
 
 
 def resolve_target(text, config):
@@ -13,19 +13,38 @@ def resolve_target(text, config):
     return matches[0]
 
 
-def plan_to_object(grid, start, obj):
+def approach_candidates(grid,obj,start=None,start_yaw=None,extras=(.35,)):
+    """Axis, diagonal and pose-aligned rays outside the inflated object AABB."""
     cx, cy = obj['center']
     sx, sy = obj['size'][:2]
-    gap = grid.padding + 0.35
-    candidates = [(cx-sx/2-gap,cy), (cx+sx/2+gap,cy),
-                  (cx,cy-sy/2-gap), (cx,cy+sy/2+gap)]
+    angles=[math.pi,0,-math.pi/2,math.pi/2,
+            -3*math.pi/4,-math.pi/4,math.pi/4,3*math.pi/4]
+    if start is not None and math.dist(start,(cx,cy))>1e-8:
+        angles.append(math.atan2(start[1]-cy,start[0]-cx))
+    if start_yaw is not None:
+        angles.append(start_yaw+math.pi)
+    seen=set()
+    for angle in angles:
+        key=round(angle%(2*math.pi),8)
+        if key in seen:
+            continue
+        seen.add(key)
+        ux,uy=math.cos(angle),math.sin(angle)
+        for extra in extras:
+            distance=min(half/abs(u) if abs(u)>1e-10 else math.inf
+                         for half,u in [(sx/2+grid.padding+extra,ux),
+                                        (sy/2+grid.padding+extra,uy)])
+            yield (cx+ux*distance,cy+uy*distance),math.atan2(-uy,-ux)
+
+
+def plan_to_object(grid, start, obj, start_yaw=None):
     routes = []
-    for goal in candidates:
+    for goal,_ in approach_candidates(grid,obj,start,start_yaw):
         try:
-            route = plan(grid, start, goal)
+            route = plan(grid, start, goal,start_yaw=start_yaw)
             routes.append(route)
         except ValueError:
             continue
     if not routes:
         raise ValueError('No reachable approach point')
-    return min(routes, key=lambda r: sum(math.dist(a,b) for a,b in zip(r,r[1:])))
+    return min(routes, key=lambda r: route_score(r,start_yaw))

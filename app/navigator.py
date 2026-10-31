@@ -3,6 +3,7 @@ import math
 import time
 from pose_provider import PoseProvider
 from motion_config import MotionSettings
+from route_metrics import MotionMetrics
 
 
 def steering(pose, goal, settings=MotionSettings()):
@@ -45,6 +46,7 @@ class Navigator:
         deadline = time.monotonic()+timeout
         minimum_clearance = math.inf
         started = time.monotonic()
+        metrics = MotionMetrics()
         try:
             for index, goal in enumerate(route[1:], 1):
                 best, progress = math.inf, time.monotonic()
@@ -53,6 +55,7 @@ class Navigator:
                     if guard is not None:
                         guard()
                     pose = self.provider.current()
+                    metrics.observe_pose(pose)
                     minimum_clearance = min(minimum_clearance, self.grid.clearance(pose[:2]))
                     if not self.grid.point_free(pose[:2]):
                         raise RuntimeError('Robot outside safe map clearance')
@@ -60,6 +63,7 @@ class Navigator:
                     tolerance = 0.025 if index < len(route)-1 else 0.10
                     if distance < tolerance:
                         stop(self.pub)
+                        metrics.stopped()
                         break
                     if distance < best-0.02:
                         best, progress = distance, time.monotonic()
@@ -69,6 +73,7 @@ class Navigator:
                     if not self.grid.segment_free(pose[:2], goal):
                         raise RuntimeError('Tracking deviation: next segment unsafe')
                     linear, angular = steering(pose, goal, self.settings)
+                    metrics.observe_command(linear,angular)
                     msg = Twist()
                     msg.linear.x, msg.angular.z = linear, angular
                     self.pub.publish(msg)
@@ -80,12 +85,16 @@ class Navigator:
             if guard is not None:
                 guard()
             final_pose = self.provider.current()
+            metrics.observe_pose(final_pose)
             error = math.dist(final_pose[:2], route[-1])
             if error > 0.10 or not self.grid.point_free(final_pose[:2]):
                 raise RuntimeError('Final stopped pose is outside goal tolerance or safe map')
             minimum_clearance = min(minimum_clearance, self.grid.clearance(final_pose[:2]))
             print(f'ARRIVED: pose={final_pose}, goal={route[-1]}, error={error:.3f}m, '
                   f'minimum_footprint_clearance={minimum_clearance:.3f}m, '
-                  f'elapsed={time.monotonic()-started:.1f}s', flush=True)
+                  f'elapsed={time.monotonic()-started:.1f}s, '
+                  f'rotation_episodes={metrics.episodes}, '
+                  f'total_yaw={math.degrees(metrics.rotation):.1f}deg', flush=True)
+            return metrics.summary()
         finally:
             stop(self.pub)
