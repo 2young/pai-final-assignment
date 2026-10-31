@@ -1,0 +1,17 @@
+services:
+  sim:
+    build: .
+    platform: linux/arm64
+    shm_size: "2gb"
+    ports:
+      - "127.0.0.1:6080:6080"
+    environment:
+      - DISPLAY=:99
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - LIBGL_DRI3_DISABLE=1
+      - QT_QPA_PLATFORM=xcb
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ./app:/workspace/app
+    working_dir: /workspace
+    init: true
