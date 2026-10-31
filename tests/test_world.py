@@ -15,9 +15,15 @@ def test_world_obstacles_match_config(tmp_path):
     <plugin name="gz::sim::systems::DiffDrive"/></model></world></sdf>''')
     output = tmp_path/'maze.sdf'
     cfg = load_config()
+    cfg['navigation'] = {'max_linear_speed': .6, 'max_angular_speed': .75}
     generate(source, output, cfg)
     world = ET.parse(output).getroot().find('world')
     assert world.find("model[@name='vehicle_green']") is None
+    drive = world.find("model[@name='vehicle_blue']/plugin[@name='gz::sim::systems::DiffDrive']")
+    assert float(drive.find('max_linear_velocity').text) == .6
+    assert float(drive.find('min_linear_velocity').text) == -.6
+    assert float(drive.find('max_angular_velocity').text) == .75
+    assert float(drive.find('min_angular_velocity').text) == -.75
     for name in ('left_wheel','right_wheel'):
         assert float(world.find(f"model[@name='vehicle_blue']/link[@name='{name}']/pose").text.split()[0]) == 0
     for obj in cfg['walls']+cfg['objects']:

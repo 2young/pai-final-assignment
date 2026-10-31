@@ -103,7 +103,7 @@ def main():
             from navigator import Navigator
             from object_tracker import ObjectTracker
             tracker = ObjectTracker(node, config)
-            navigator = Navigator(node, pub, None)
+            navigator = Navigator(node, pub, None, config=config)
 
             def prepare_navigation():
                 live = tracker.snapshot()

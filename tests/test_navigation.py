@@ -70,7 +70,7 @@ def test_dead_end_requires_backtracking():
 def test_steering_rotates_before_translating():
     assert steering((0,0,math.pi),(1,0))[0] == 0
     linear, angular = steering((0,0,0),(1,0))
-    assert 0 < linear <= .35
+    assert 0 < linear <= .7
     assert angular == 0
     assert abs(steering((0,0,-math.pi+.01),(-1,0))[1]) < .1
 

@@ -2,6 +2,7 @@
   "bounds": [-8, -8, 8, 8],
   "resolution": 0.1,
   "robot": {"spawn": [-5, -4, 0], "radius": 1.85, "margin": 0.25},
+  "navigation": {"max_linear_speed": 0.7, "max_angular_speed": 0.5, "distance_gain": 0.8, "heading_gain": 1.8},
   "walls": [
     {"id": "detour", "center": [0, -3], "size": [0.3, 7, 1]},
     {"id": "corner", "center": [2, 0.5], "size": [4, 0.3, 1]},

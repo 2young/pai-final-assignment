@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from grid_map import load_config
+from motion_config import MotionSettings
 
 
 def add_pose_publisher(model):
@@ -60,9 +61,12 @@ def generate(source, output, config):
     pose = vehicle.find('pose').text.split()
     vehicle.find('pose').text = f'{x} {y} {pose[2]} 0 0 {yaw}'
     drive = vehicle.find("plugin[@name='gz::sim::systems::DiffDrive']")
-    for name, value in [('odom_publish_frequency', '30'), ('max_linear_velocity', '0.35'),
-                        ('min_linear_velocity', '-0.35'), ('max_angular_velocity', '0.5'),
-                        ('min_angular_velocity', '-0.5')]:
+    settings = MotionSettings.from_config(config)
+    for name, value in [('odom_publish_frequency', '30'),
+                        ('max_linear_velocity', str(settings.max_linear_speed)),
+                        ('min_linear_velocity', str(-settings.max_linear_speed)),
+                        ('max_angular_velocity', str(settings.max_angular_speed)),
+                        ('min_angular_velocity', str(-settings.max_angular_speed))]:
         el = drive.find(name)
         if el is None:
             el = ET.SubElement(drive, name)

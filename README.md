@@ -100,6 +100,7 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 | `app/path_planner.py` | 4近傍A*、マンハッタン距離、経路復元・直線区間の圧縮 |
 | `app/pose_provider.py` | 車両・登録オブジェクトのワールド位置、姿勢、鮮度確認 |
 | `app/object_tracker.py` | 実行時位置のスナップショット、配置検査、走行中の移動検知 |
+| `app/motion_config.py` | 車両と追従制御で共通の速度設定・値の検査 |
 | `app/navigator.py` | 低速の位置フィードバック、到達・停滞・停止処理 |
 | `app/robot_control.py` | 自然言語と座標指定のCLI、従来操作との統合 |
 | `scripts/run_maze.sh` | SDF生成、GazeboとROS bridgeの起動・終了 |
@@ -113,7 +114,31 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 生成時に全リンクを平行移動し、迷路用車両の原点を駆動輪中央に合わせます。
 保守的な包絡円半径1.85mに安全余裕0.25mを足して、壁・箱・境界を膨張します。
 セル中心だけでなくセル全体を保守的に占有判定します。箱中心はゴールにせず、膨張領域からさらに0.35m離れた4候補のうち、到達可能で経路長が短い地点を選びます。
-最大前進速度0.35m/s、角速度0.5rad/s。大きな角度誤差がある間はその場で旋回します。
+最大前進速度0.7m/s、角速度0.5rad/sです。ゴールへ近づくと減速し、大きな角度誤差がある間はその場で旋回します。
+
+## 走行速度の設定
+
+`config/maze.json`の`navigation`で速度を変更できます。追従制御とGazebo車両の上限の両方に反映します。
+
+```json
+"navigation": {
+  "max_linear_speed": 0.7,
+  "max_angular_speed": 0.5,
+  "distance_gain": 0.8,
+  "heading_gain": 1.8
+}
+```
+
+単位は直進がm/s、旋回がrad/sです。直進上限は以前の2倍です。旋回速度と接近時の制御は従来値を維持しており、
+経由点での減速・旋回があるため、到着までの時間がそのまま半分になるわけではありません。
+`distance_gain`は接近時の速度、`heading_gain`は旋回の応答を調整します。
+以前の低速設定に戻す場合は、順に`0.35`、`0.5`、`0.8`、`1.8`を指定します。
+
+設定変更後は、迷路を起動したターミナルでCtrl+Cを押して終了し、`run_maze.sh`を一度だけ実行し直してください。
+Dockerの再起動・再ビルドは不要です。起動中の迷路を終了する前に別の迷路を起動しないでください。
+車両側の速度上限は迷路内の手動操作にも適用されます。
+到着ログには走行制御開始からの`elapsed`（実時間の秒）を表示します。
+HEADLESSの同じ15.82mの経路では、コマンド全体が約101秒から約84秒へ短縮しました（各1回の比較）。詳細は[検証記録](VALIDATION.md)を参照してください。
 
 ## 位置トピックの確認
 
