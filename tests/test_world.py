@@ -21,6 +21,8 @@ def test_world_obstacles_match_config(tmp_path):
     assert world.find("model[@name='vehicle_green']") is None
     assert world.find("plugin[@name='gz::sim::systems::Contact']") is not None
     drive = world.find("model[@name='vehicle_blue']/plugin[@name='gz::sim::systems::DiffDrive']")
+    assert float(drive.find('max_linear_acceleration').text)==1.
+    assert float(drive.find('min_linear_acceleration').text)==-1.
     assert float(drive.find('max_linear_velocity').text) == .6
     assert float(drive.find('min_linear_velocity').text) == -.6
     assert float(drive.find('max_angular_velocity').text) == .75

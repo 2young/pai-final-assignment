@@ -110,7 +110,11 @@ def main():
             tracker = ObjectTracker(node, config)
             navigator = Navigator(node, pub, None, config=config)
             if goal_mode == 'contact' and targets:
+                from motion_config import ContactSettings
+                ContactSettings.from_config(config)  # Validate before any motion.
                 from contact_goal import ContactMonitor, plan_contact, touch, can_resume_touch
+                from contact_speed import FEEDBACK_WALL_TIMEOUT
+                contact_guard=lambda:tracker.assert_unchanged(max_age=FEEDBACK_WALL_TIMEOUT)
                 contacts = {o['id']: ContactMonitor(node,o['id']) for o in targets.values()}
                 for monitor in contacts.values():
                     monitor.require_sensor()
@@ -155,7 +159,7 @@ def main():
                     raise RuntimeError('No ROS contact bridge; restart maze')
                 if (goal_mode == 'contact' and not navigator.grid.free(navigator.grid.cell(start))
                         and can_resume_touch(live,navigator.provider.current(),target)):
-                    touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged)
+                    touch(navigator,live,target,contacts[target['id']],contact_guard)
                     continue
                 route = (plan_contact(navigator.grid,start,target,start_yaw=yaw) if goal_mode == 'contact'
                          else plan_to_object(navigator.grid,start,target,start_yaw=yaw))
@@ -169,7 +173,7 @@ def main():
                 validate_plan_start(start)
                 phases=[navigator.follow(route, guard=tracker.assert_unchanged)]
                 if goal_mode == 'contact':
-                    phases.append(touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged))
+                    phases.append(touch(navigator,live,target,contacts[target['id']],contact_guard))
                 print(f"NAVIGATION_SUMMARY: planned_turns={score[0]}, "
                       f"rotation_episodes={sum(p['rotation_episodes'] for p in phases)}, "
                       f"total_yaw={sum(p['total_yaw_degrees'] for p in phases):.1f}deg",flush=True)

@@ -6,9 +6,9 @@ from path_planner import plan,route_score
 from target_resolver import approach_candidates
 from pose_provider import angle_difference
 from navigator import stop
-from route_metrics import MotionMetrics
-
-CONTACT_SPEED = 0.10
+from route_metrics import MotionMetrics,simulation_time
+from motion_config import ContactSettings,MotionSettings
+from contact_speed import projected_gap,ApproachSpeedController,FEEDBACK_WALL_TIMEOUT
 
 
 def footprint_free(config, pose, target_id):
@@ -112,6 +112,7 @@ class ContactMonitor:
         self.hit = False
         self.details = None
         self.min_stamp = None
+        self.contact_stamp = None
         self.subscription = node.create_subscription(
             Contacts,f'/model/{target_id}/contact',self.callback,qos_profile_sensor_data)
 
@@ -137,6 +138,8 @@ class ContactMonitor:
             names = [a.split('::'),b.split('::')]
             if ((self.target_id in names[0] and 'vehicle_blue' in names[1]) or
                     (self.target_id in names[1] and 'vehicle_blue' in names[0])):
+                if not self.hit and hasattr(message,'header'):
+                    self.contact_stamp=(message.header.stamp.sec,message.header.stamp.nanosec)
                 self.hit = True
                 self.details = (a,b)
 
@@ -144,6 +147,7 @@ class ContactMonitor:
         self.hit = False
         self.details = None
         self.min_stamp = min_stamp
+        self.contact_stamp = None
 
 
 def touch(navigator, config, target, monitor, guard, timeout=60):
@@ -155,20 +159,34 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
     aligned = False
     monitor.arm(getattr(navigator.provider,'stamp',None))
     metrics=MotionMetrics()
-    print(f'CONTACT approach: target={target["id"]}, speed={CONTACT_SPEED}m/s',flush=True)
+    settings=ContactSettings.from_config(config)
+    controller=ApproachSpeedController(settings,MotionSettings.from_config(config).max_linear_speed)
+    print(f'CONTACT approach: target={target["id"]}, max_speed={controller.max_speed}m/s, '
+          f'touch_speed={controller.touch_speed}m/s',flush=True)
     try:
+        # Drain updates received during the previous waypoint's STOP sequence.
+        for _ in range(10):
+            rclpy.spin_once(navigator.node,timeout_sec=0)
         while True:
             rclpy.spin_once(navigator.node,timeout_sec=.02)
             guard()
             pose = navigator.provider.current()
-            metrics.observe_pose(pose)
+            stamp=getattr(navigator.provider,'stamp',None)
+            if time.monotonic()-navigator.provider.received>FEEDBACK_WALL_TIMEOUT:
+                raise RuntimeError('Contact robot pose missing or stale')
+            metrics.observe_pose(pose,stamp)
             if not footprint_free(config,pose,target['id']):
                 raise RuntimeError('Contact approach would violate wall/boundary clearance')
             if monitor.hit:
                 stop(navigator.pub)
+                speed=metrics.speed_before(getattr(monitor,'contact_stamp',None))
+                measured='unknown' if speed is None else f'{speed:.3f}m/s'
                 print(f'CONTACT_REACHED: target={target["id"]}, pose={pose}, '
                       f'collisions={monitor.details}, rotation_episodes={metrics.episodes}, '
-                      f'total_yaw={math.degrees(metrics.rotation):.1f}deg',flush=True)
+                      f'total_yaw={math.degrees(metrics.rotation):.1f}deg, '
+                      f'elapsed={time.monotonic()-started:.2f}s, '
+                      f'max_actual_speed={metrics.max_speed:.3f}m/s, '
+                      f'pre_contact_actual_speed={measured}',flush=True)
                 return metrics.summary()
             x,y,yaw = pose
             distance = math.dist((x,y),(cx,cy))
@@ -186,6 +204,7 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
                 if abs(error)<.03:
                     aligned=True
                     best,progress=distance,time.monotonic()
+                    controller.reset(simulation_time(stamp))
                 else:
                     # Rotation occurs only at the collision-free stand-off point.
                     msg=Twist()
@@ -199,8 +218,9 @@ def touch(navigator, config, target, monitor, guard, timeout=60):
             if time.monotonic()-progress>3:
                 raise RuntimeError('Contact approach stalled without sensor confirmation')
             msg=Twist()
-            msg.linear.x=CONTACT_SPEED
-            msg.angular.z=float(max(-.15,min(.15,1.8*error)))
+            msg.linear.x=controller.step(projected_gap(config,pose,target),
+                                         metrics.last_speed or 0.,simulation_time(stamp))
+            msg.angular.z=float(max(-.15,min(.15,1.8*error))) if msg.linear.x>0 else 0.
             metrics.observe_command(msg.linear.x,msg.angular.z)
             navigator.pub.publish(msg)
             time.sleep(.02)

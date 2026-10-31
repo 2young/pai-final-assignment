@@ -1,6 +1,7 @@
 import math
 import subprocess
 import sys
+import time
 from types import SimpleNamespace as NS
 import pytest
 from contact_goal import footprint_free, plan_contact, ContactMonitor, target_ray_radius, touch, can_resume_touch
@@ -104,7 +105,7 @@ def test_contact_failures_stop_and_never_report_success(monkeypatch,capsys,failu
     stopped=[]
     monkeypatch.setattr('contact_goal.stop',lambda pub:stopped.append(pub))
     pose=(4.6,4,0) if failure=='travel' else (2.25,4,0)
-    nav=NS(node=object(),pub=object(),provider=NS(current=lambda:pose))
+    nav=NS(node=object(),pub=object(),provider=NS(current=lambda:pose,stamp=(1,0),received=time.monotonic()))
     monitor=NS(hit=False,arm=lambda *args:None)
     def guard():
         if failure=='moved':

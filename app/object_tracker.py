@@ -68,11 +68,13 @@ class ObjectTracker:
                            if p.state is None or p.received < requested]
                 raise RuntimeError(f'No fresh object world pose: {missing}; restart maze/bridge')
 
-    def assert_unchanged(self):
+    def assert_unchanged(self,max_age=None):
         if self.baseline is None:
             raise RuntimeError('Object snapshot not initialized')
         for name, original in self.baseline.items():
             current = self.providers[name].current_state()
+            if max_age is not None and time.monotonic()-self.providers[name].received>max_age:
+                raise RuntimeError(f'{name}: contact object pose missing or stale')
             translation = math.dist((original.x, original.y, original.z),
                                     (current.x, current.y, current.z))
             rotation = max(abs(angle_difference(getattr(current, axis), getattr(original, axis)))

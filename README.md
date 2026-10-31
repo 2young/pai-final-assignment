@@ -63,12 +63,13 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 既定の`config/maze.json`は`"goal_mode": "contact"`です。通常の日本語コマンドで次の順に実行します。
 
 1. A*で箱の手前の安全な接近地点へ移動し、停止します。
-2. 箱の中心へ向きを合わせ、0.10m/sで前進します。
+2. 箱の中心へ向きを合わせ、離れている間は最大0.40m/sで前進し、接触直前に0.10m/sへ減速します。
 3. 箱の接触センサーが`vehicle_blue`との接触を検知したら、ゼロ速度を送って終了します。
 
 箱は静的モデルのままです。最後の接近区間では対象の箱への接触を許可し、壁・他の箱・地図境界は安全余裕0.25mを含む車両の矩形外形で確認します。
 車両外形はワールド生成時に実際のコリジョン形状を含むか検算します。
 箱の位置喪失・移動、接近方向のずれ、進捗なし3秒、全体60秒、接近距離上限に達した場合は中断して停止します。
+接触区間ではロボット・登録オブジェクトの位置更新が実時間で0.30秒途絶える場合も停止します。
 接触センサーのGazebo publisherまたはROS bridgeがない場合も走行しません。
 距離だけで接触成功とは判断しません。
 
@@ -128,8 +129,9 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 | `app/pose_provider.py` | 車両・登録オブジェクトのワールド位置、姿勢、鮮度確認 |
 | `app/object_tracker.py` | 実行時位置のスナップショット、配置検査、走行中の移動検知 |
 | `app/motion_config.py` | 車両と追従制御で共通の速度設定・値の検査 |
+| `app/contact_speed.py` | 外形間の距離下限、制動距離、シミュレーション時刻に合わせた加減速 |
 | `app/contact_goal.py` | 接触区間の計画、車両の矩形外形、接触検知と低速停止 |
-| `app/route_metrics.py` | その場旋回の指令回数とワールド姿勢からの総回転角の計測 |
+| `app/route_metrics.py` | 旋回・回転角・シミュレーション時刻による実速度の計測 |
 | `app/navigator.py` | 低速の位置フィードバック、到達・停滞・停止処理 |
 | `app/robot_control.py` | 自然言語と座標指定のCLI、従来操作との統合 |
 | `scripts/run_maze.sh` | SDF生成、GazeboとROS bridgeの起動・終了 |
@@ -167,7 +169,7 @@ A*は箱中心ではなく、膨張領域から離れた接近候補を使いま
 - `NAVIGATION_SUMMARY`：接近経路と最終接触を合わせた計測値です。
 
 計画上の方向転換回数とその場旋回の指令回数は異なる指標で、追従誤差によっても変わります。
-HEADLESSの同じ初期配置では、その場旋回9回→4回、接触完了まで約106秒→約70秒となりました。
+斜め経路を追加した時点（最終接近0.10m/s固定）のHEADLESS比較では、その場旋回9回→4回、接触完了まで約106秒→約70秒となりました。
 詳細と失敗時停止の再検証結果は[検証記録](VALIDATION.md)を参照してください。
 
 ## 走行速度の設定
@@ -194,6 +196,39 @@ Dockerの再起動・再ビルドは不要です。起動中の迷路を終了�
 到着ログには走行制御開始からの`elapsed`（実時間の秒）を表示します。
 HEADLESSの同じ15.82mの経路では、手前停止モードのコマンド全体が約101秒から約84秒へ短縮しました（各1回の比較）。接触モードではさらに低速の接触区間が加わります。詳細は[検証記録](VALIDATION.md)を参照してください。
 
+## 最後の接近区間の速度
+
+`config/maze.json`の`contact_approach`で設定します。指示コマンドの変更は不要です。
+
+```json
+"contact_approach": {
+  "max_speed": 0.4,
+  "touch_speed": 0.1,
+  "acceleration": 0.3,
+  "deceleration": 0.35,
+  "safety_buffer": 0.2,
+  "reaction_time": 0.2
+}
+```
+
+- `max_speed`：離れている時の上限（m/s）。`navigation.max_linear_speed`以下にも制限します。
+- `touch_speed`：接触直前の速度（m/s）。`max_speed`以下に設定します。
+- `acceleration` / `deceleration`：速度指令の加減速上限（m/s²）。車両側の上限1.0以下です。
+- `safety_buffer`：減速時に残す距離の余裕（m）。
+- `reaction_time`：位置更新・制御の遅れに備える時間（シミュレーション時間の秒）。
+
+箱と車両の外形を進行方向へ投影し、接触までの距離を安全側に見積もります。
+箱の回転と車両の前面・側面を含めるため、斜めの接触でも減速位置を判断できます。
+実速度と制動距離から速度上限を計算し、シミュレーション時刻に合わせて加減速します。
+接触・エラー時はランプを待たずゼロ速度を送ります。
+`max_speed`と`touch_speed`を両方0.1にすると、上限を従来と同じ低速にできます（発進時の加速ランプは残ります）。
+
+この項目は次回の指示から反映され、Docker・Gazeboの再起動は不要です。
+`CONTACT_REACHED`には接触区間の`elapsed`、`max_actual_speed`、`pre_contact_actual_speed`を出力します。
+実速度はワールドposeのシミュレーション時刻から計測し、接触直前速度は接触時刻より前のサンプルを使います。
+同じ配置で前進開始から接触まで約22.2秒→約8.7秒、接触直前の実速度はどちらも0.10m/sでした。
+詳細は[検証記録](VALIDATION.md)を参照してください。
+
 ## 位置トピックの確認
 
 専用ワールドに`PosePublisher`を追加し、`vehicle_blue`と登録オブジェクトのワールドposeを30Hzで配信します。
@@ -212,7 +247,7 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && gz topic -
 箱の`/model/red_box/contact`はGazebo `gz.msgs.Contacts`からROS `ros_gz_interfaces/msg/Contacts`へブリッジします。接触がある時だけ配信され、箱とロボットのコリジョンの組み合わせを照合します。
 
 購読callbackは制御周期で`rclpy.spin_once`を呼んで処理します。
-位置更新が1.5秒途絶えた場合は停止。初期位置待機10秒、全体240秒、進捗なし25秒で中断します。
+A*追従では位置更新が1.5秒途絶えた場合に停止し、最終接近では0.30秒で停止します。初期位置待機10秒、全体240秒、進捗なし25秒で中断します。
 未知色・複数対象・曖昧な対象は指示バッチを実行せず停止します。
 `--dry-run`は分類と対象参照のみで、位置取得や走行成功を検証するものではありません。
 
@@ -238,6 +273,8 @@ Gazeboの物理シミュレーション結果は、単体テストとは区別�
 - `No Gazebo contact sensor publisher` / `No ROS contact bridge`：更新後の`run_maze.sh`で迷路を再起動してください。
 - `No reachable approach point with safe contact corridor`：手前への経路または最後の接触区間が塞がっています。箱を配置し直すか`--goal-mode stand_off`を試してください。
 - `No fresh pose after planning`：Gazeboが再生中か確認します。計画中に箱・ロボットを動かした場合は配置を確定して再指示します。
+- `Contact robot pose missing or stale` / `contact object pose missing or stale`：位置更新が途絶えています。Gazeboの再生状態と負荷を確認してください。
+- `Contact feedback interval too large`：シミュレーション時刻で0.20秒を超える位置更新の間隔があり、加減速の継続を中断しています。
 - `Old model`：`train.py`で再学習します。
 - タイムアウト：Gazeboの再生状態・実時間速度を確認します。重い場合は`HEADLESS=1`で切り分けます。
 
