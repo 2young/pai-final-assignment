@@ -13,5 +13,9 @@ services:
       - QT_X11_NO_MITSHM=1
     volumes:
       - ./app:/workspace/app
+      - ./config:/workspace/config:ro
+      - ./worlds:/workspace/worlds
+      - ./scripts:/workspace/scripts:ro
+      - ./tests:/workspace/tests:ro
     working_dir: /workspace
     init: true

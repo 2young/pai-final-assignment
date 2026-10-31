@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Locally generated simulation world
+worlds/maze.sdf
+.DS_Store

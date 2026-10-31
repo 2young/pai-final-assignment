@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-sklearn \
     python3-joblib \
     python3-numpy \
+    python3-pytest \
     xvfb \
     x11vnc \
     novnc \

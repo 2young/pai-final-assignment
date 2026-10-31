@@ -1,0 +1,28 @@
+import xml.etree.ElementTree as ET
+from generate_world import generate
+from grid_map import load_config
+
+
+def test_world_obstacles_match_config(tmp_path):
+    # Minimal installed-source stand-in; real source is checked by simulation.
+    source = tmp_path/'source.sdf'
+    source.write_text('''<sdf version="1.9"><world name="demo">
+    <model name="ground_plane"/><model name="vehicle_green"/>
+    <model name="vehicle_blue"><pose>0 2 .325 0 0 0</pose>
+    <link name="left_wheel"><pose>.55 .625 0 0 0 0</pose></link>
+    <link name="right_wheel"><pose>.55 -.625 0 0 0 0</pose></link>
+    <link name="chassis"><pose>-.15 0 0 0 0 0</pose></link>
+    <plugin name="gz::sim::systems::DiffDrive"/></model></world></sdf>''')
+    output = tmp_path/'maze.sdf'
+    cfg = load_config()
+    generate(source, output, cfg)
+    world = ET.parse(output).getroot().find('world')
+    assert world.find("model[@name='vehicle_green']") is None
+    for name in ('left_wheel','right_wheel'):
+        assert float(world.find(f"model[@name='vehicle_blue']/link[@name='{name}']/pose").text.split()[0]) == 0
+    for obj in cfg['walls']+cfg['objects']:
+        model = world.find(f"model[@name='{obj['id']}']")
+        assert list(map(float,model.find('pose').text.split()[:2])) == obj['center']
+        for kind in ['collision','visual']:
+            size = model.find(f'link/{kind}/geometry/box/size')
+            assert list(map(float,size.text.split())) == obj['size']

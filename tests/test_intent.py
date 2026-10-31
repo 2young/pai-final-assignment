@@ -15,6 +15,10 @@ def test_predictions(tmp_path):
         'ここで止めて': 'STOP',
         '少し後ろへ移動して': 'BACKWARD',
         '': 'STOP',
+        '赤いオブジェクトまで行ってください': 'GO_TO_OBJECT',
+        '赤い箱まで行って': 'GO_TO_OBJECT',
+        '紫の箱まで': 'GO_TO_OBJECT',
+        '赤い箱に向かわず停止して': 'STOP',
     }
     for sentence, expected in checks.items():
         assert predict(model, sentence) == expected, sentence

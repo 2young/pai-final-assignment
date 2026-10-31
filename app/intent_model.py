@@ -9,6 +9,12 @@ from sklearn.svm import LinearSVC
 MODEL_PATH = Path(__file__).parent / "intent_model.joblib"
 
 EXAMPLES = {
+    "GO_TO_OBJECT": [
+        "赤いオブジェクトまで行ってください", "赤い箱まで行って", "赤い物体へ移動して",
+        "赤い目標に向かって", "緑の箱まで移動", "青い物体まで行って",
+        "紫の箱まで", "赤い箱に近づいて", "赤いオブジェクトへ向かって",
+        "目標物まで移動してください", "red_boxまで行って", "箱まで行って",
+    ],
     "FORWARD": [
         "前に進んで", "前進して", "まっすぐ進んで", "前へ移動して", "進め",
         "前に移動", "少し前進", "前方向に走って", "そのまま直進", "真っ直ぐ進もう",
@@ -45,7 +51,7 @@ def train(path=MODEL_PATH):
         labels.extend([label] * len(examples))
     clf = make_pipeline(
         TfidfVectorizer(analyzer="char", ngram_range=(1, 4)),
-        LinearSVC(random_state=42),
+        LinearSVC(random_state=42, dual=True),
     )
     clf.fit(texts, labels)
     joblib.dump(clf, path)
@@ -56,7 +62,12 @@ def predict(clf, text):
     # Fail-safe for obviously unrelated commands: choose not to drive.
     if not text.strip():
         return "STOP"
+    if any(w in text for w in ("止ま", "停止", "ストップ", "止め", "動かない")):
+        return "STOP"
     vec = clf.named_steps["tfidfvectorizer"].transform([text])
     if vec.nnz == 0:
         return "STOP"
-    return str(clf.predict([text])[0])
+    intent = str(clf.predict([text])[0])
+    if any(word in text for word in ("箱", "物体", "オブジェクト", "目標")) and intent != "GO_TO_OBJECT":
+        return "STOP"
+    return intent

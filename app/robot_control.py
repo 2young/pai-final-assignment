@@ -1,6 +1,8 @@
 """ROS 2 node that translates Japanese text -> inferred intent -> Twist."""
 
 import argparse
+import math
+import sys
 from pathlib import Path
 import time
 import joblib
@@ -43,24 +45,47 @@ def main():
     parser.add_argument("commands", nargs="*", help="Japanese short commands")
     parser.add_argument("--dry-run", action="store_true", help="AI test without ROS/Gazebo")
     parser.add_argument("--demo", action="store_true", help="Use preselected instructions")
+    parser.add_argument("--goal", nargs=2, type=float, metavar=("X", "Y"))
     args = parser.parse_args()
     if not Path(MODEL_PATH).is_file():
         raise SystemExit("Model not found. Run python3 app/train.py first.")
     clf = joblib.load(MODEL_PATH)
+    if "GO_TO_OBJECT" not in clf.classes_:
+        raise SystemExit("Old model: run python3 app/train.py to retrain for navigation.")
     commands = DEMO if args.demo else args.commands
-    if not commands:
+    if not commands and args.goal is None:
         raise SystemExit('Try: python3 app/robot_control.py --demo')
     results = [(text, predict(clf, text)) for text in commands]
     for text, intent in results:
         print(f"AI inference: {text!r} -> {intent}", flush=True)
+    from grid_map import GridMap, load_config
+    from target_resolver import resolve_target, plan_to_object
+    from path_planner import plan
+    config = load_config()
+    # Resolve before starting any motion; a failed command cancels the batch.
+    try:
+        targets = {text: resolve_target(text, config) for text, intent in results
+                   if intent == "GO_TO_OBJECT"}
+    except ValueError as exc:
+        if args.dry_run:
+            raise SystemExit(str(exc))
+        targets = None  # Enter ROS finally block to publish STOP before reporting.
     if args.dry_run:
+        for text, target in targets.items():
+            print(f"Registered target: {target['id']} at {target['center']}")
         return
 
     import rclpy
     from rclpy.node import Node
     from geometry_msgs.msg import Twist
 
-    rclpy.init()
+    # Keep the ROS context alive while finally publishes STOP on Ctrl+C.
+    from rclpy.signals import SignalHandlerOptions
+    import signal
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupted)
+    rclpy.init(signal_handler_options=SignalHandlerOptions.NO)
     node = Node("japanese_instruction_robot")
     pub = node.create_publisher(Twist, TOPIC, 10)  # reliable QoS by default
     try:
@@ -71,7 +96,27 @@ def main():
             time.sleep(0.1)
         else:
             raise RuntimeError(f"No subscribers on {TOPIC}. Start Gazebo demo first.")
+        if targets is None:
+            raise ValueError("Target unknown or ambiguous; stopped")
+        if args.goal is not None or targets:
+            from navigator import Navigator
+            grid = GridMap(config)
+            navigator = Navigator(node, pub, grid)
+        if args.goal is not None:
+            start = navigator.current()[:2]
+            route = plan(grid, start, tuple(args.goal))
+            length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
+            print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, waypoints={route}", flush=True)
+            navigator.follow(route)
         for text, intent in results:
+            if intent == "GO_TO_OBJECT":
+                start = navigator.current()[:2]
+                route = plan_to_object(grid, start, targets[text])
+                length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
+                print(f"A*: start={start}, goal={route[-1]}, target={targets[text]['id']}, "
+                      f"length={length:.2f}m, waypoints={route}", flush=True)
+                navigator.follow(route)
+                continue
             linear, angular, duration = MOTIONS[intent]
             print(f"Executing {intent} (linear={linear}, angular={angular})", flush=True)
             send_motion(node, pub, linear, angular, duration)
@@ -84,4 +129,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted", file=sys.stderr)
+        raise SystemExit(130)
+    except (ValueError, RuntimeError) as exc:
+        print(f"Aborted: {exc}", file=sys.stderr)
+        raise SystemExit(1)
