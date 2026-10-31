@@ -19,6 +19,8 @@ def astar(grid, start, goal):
     queue=[(octile(start,goal),0.,start)]
     costs,parents={start:0.},{}
     while queue:
+        if hasattr(grid,'check_budget'):
+            grid.check_budget(expansion=True)
         _,cost,current=heapq.heappop(queue)
         if cost!=costs[current]:
             continue
@@ -56,6 +58,8 @@ def _candidates(grid, points, start_yaw, final_yaw):
     candidates=[points[0],points[-1]]
     distance=0.
     for i in range(1,len(points)-1):
+        if i%16==0 and hasattr(grid,'check_budget'):
+            grid.check_budget()
         a,b,c=points[i-1:i+2]
         u=(b[0]-a[0],b[1]-a[1]);v=(c[0]-b[0],c[1]-b[1])
         distance+=math.dist(a,b)
@@ -89,7 +93,11 @@ def simplify_path(grid, points, start_yaw=None, final_yaw=None):
     nodes=_candidates(grid,points,start_yaw,final_yaw)
     edges=[[] for _ in nodes]
     for i,a in enumerate(nodes):
+        if hasattr(grid,'check_budget'):
+            grid.check_budget()
         for j in range(i+1,len(nodes)):
+            if hasattr(grid,'check_budget'):
+                grid.check_budget()
             b=nodes[j]
             if grid.segment_free(a,b):
                 length=math.dist(a,b)
@@ -100,6 +108,8 @@ def simplify_path(grid, points, start_yaw=None, final_yaw=None):
     queue=[(0,0.,0.,*root)]
     best=None;goal_state=None
     while queue:
+        if hasattr(grid,'check_budget'):
+            grid.check_budget(expansion=True)
         turns,length,angle,previous,current=heapq.heappop(queue)
         cost=(turns,length,angle);state=(previous,current)
         if cost!=costs.get(state):

@@ -21,7 +21,8 @@ def test_only_target_is_excluded_from_contact_clearance():
 
 
 def test_boundary_clearance_uses_orientation_and_rear_overhang():
-    cfg=runtime_config(load_config(),{'red_box':WorldPose(-1.124,7.069,.4,0,0,0)})
+    cfg=load_config();cfg['bounds']=[-8,-8,8,8]
+    cfg=runtime_config(cfg,{'red_box':WorldPose(-1.124,7.069,.4,0,0,0)})
     assert footprint_free(cfg,(-1.135,6.464,math.pi/2),'red_box')
     assert not footprint_free(cfg,(-1.135,6.464,-math.pi/2),'red_box')
     route=plan_contact(GridMap(cfg),(-1.175,4.332),cfg['objects'][0])
@@ -37,7 +38,8 @@ def test_rotated_target_can_use_adjacent_free_standoff_cell():
 
 
 def test_unreachable_contact_approach_is_rejected():
-    cfg=runtime_config(load_config(),{'red_box':WorldPose(1,-3,.4,0,0,0)})
+    cfg=load_config();cfg['bounds']=[-8,-8,8,8]  # Explicitly sealed field.
+    cfg=runtime_config(cfg,{'red_box':WorldPose(1,-3,.4,0,0,0)})
     with pytest.raises(ValueError,match='No reachable approach point'):
         plan_contact(GridMap(cfg),(-5,-4),cfg['objects'][0])
 

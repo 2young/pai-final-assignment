@@ -11,27 +11,45 @@ def load_config(path=DEFAULT_CONFIG):
 
 
 class GridMap:
-    def __init__(self, config, tracking_margin=0):
+    def __init__(self, config, tracking_margin=0, bounds=None, budget=None):
         self.config = config
-        self.bounds = config['bounds']
+        self.operating_bounds = config['bounds']
+        self.bounds = list(config['bounds'] if bounds is None else bounds)
+        self.budget = budget
+        if (len(self.bounds)!=4 or not all(math.isfinite(v) for v in self.bounds) or
+                not self.operating_bounds[0]<=self.bounds[0]<self.bounds[2]<=self.operating_bounds[2] or
+                not self.operating_bounds[1]<=self.bounds[1]<self.bounds[3]<=self.operating_bounds[3]):
+            raise ValueError('Invalid planning window / operating bounds')
         self.resolution = config['resolution']
         self.padding = config['robot']['radius'] + config['robot']['margin'] + tracking_margin
         self.tracking_margin = tracking_margin
         self._planning_view = None
         x0, y0, x1, y1 = self.bounds
-        self.width = math.floor((x1-x0)/self.resolution)
-        self.height = math.floor((y1-y0)/self.resolution)
+        self.width = math.floor((x1-x0)/self.resolution+1e-9)
+        self.height = math.floor((y1-y0)/self.resolution+1e-9)
+        if self.budget is not None:
+            self.budget.cells(self.width*self.height)
         self.obstacles = config['walls'] + config['objects']
-        self.blocked = {(x, y) for x in range(self.width) for y in range(self.height)
-                        if not self.point_free(self.cell_center((x, y)),
-                                               self.resolution/math.sqrt(2))}
+        self.blocked = set()
+        for x in range(self.width):
+            self.check_budget()
+            for y in range(self.height):
+                if not self.point_free(self.cell_center((x,y)),self.resolution/math.sqrt(2)):
+                    self.blocked.add((x,y))
+
+    def check_budget(self,expansion=False):
+        if getattr(self,'budget',None) is not None:
+            self.budget.expand() if expansion else self.budget.check()
 
     def point_free(self, point, extra=0):
         x, y = point
         if not all(math.isfinite(v) for v in point):
             return False
         p = self.padding + extra
-        x0, y0, x1, y1 = self.bounds
+        x0, y0, x1, y1 = self.operating_bounds
+        wx0,wy0,wx1,wy1=self.bounds
+        if not (wx0<=x<wx1 and wy0<=y<wy1):
+            return False
         if not (x0+p < x < x1-p and y0+p < y < y1-p):
             return False
         for obj in self.obstacles:
@@ -46,7 +64,7 @@ class GridMap:
         """Lower bound on footprint-to-obstacle distance, without safety margin."""
         x, y = point
         radius = self.config['robot']['radius']
-        x0, y0, x1, y1 = self.bounds
+        x0, y0, x1, y1 = self.operating_bounds
         distances = [x-x0-radius, x1-x-radius, y-y0-radius, y1-y-radius]
         for obj in self.obstacles:
             cx, cy = obj['center']
@@ -73,7 +91,8 @@ class GridMap:
         if self.tracking_margin:
             return self
         if self._planning_view is None:
-            self._planning_view = GridMap(self.config, tracking_margin=.10)
+            self._planning_view = GridMap(self.config, tracking_margin=.10,
+                                          bounds=self.bounds,budget=self.budget)
         return self._planning_view
 
     def segment_cells(self, a, b):

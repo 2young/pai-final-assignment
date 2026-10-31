@@ -3,6 +3,7 @@ import copy
 import math
 import time
 from pose_provider import PoseProvider, angle_difference
+from field_geometry import intersects_operating_area
 
 MOVE_TOLERANCE = 0.05
 ANGLE_TOLERANCE = math.radians(3)
@@ -14,6 +15,9 @@ def runtime_config(config, poses):
     """Keep the source registry intact; replace each object's pose and XY bounds."""
     result = copy.deepcopy(config)
     x0, y0, x1, y1 = config['bounds']
+    policy=config.get('boundary_policy','whole_object')
+    if policy not in ('whole_object','reachable_surface'):
+        raise ValueError('boundary_policy must be whole_object or reachable_surface')
     for obj in result['objects']:
         pose = poses[obj['id']]
         if not all(math.isfinite(v) for v in
@@ -27,12 +31,16 @@ def runtime_config(config, poses):
         c, s = abs(math.cos(pose.yaw)), abs(math.sin(pose.yaw))
         # A world-axis AABB contains the rotated box, also for approach planning.
         width, height = sx*c+sy*s, sx*s+sy*c
-        if not (x0 < pose.x-width/2 and pose.x+width/2 < x1 and
-                y0 < pose.y-height/2 and pose.y+height/2 < y1):
-            raise ValueError(f"{obj['id']}: object outside field")
+        contained=(x0 < pose.x-width/2 and pose.x+width/2 < x1 and
+                   y0 < pose.y-height/2 and pose.y+height/2 < y1)
+        intersects=intersects_operating_area((pose.x,pose.y),(sx,sy),pose.yaw,config['bounds'])
+        if (policy=='whole_object' and not contained) or not intersects:
+            raise ValueError(f"{obj['id']}: object outside operating area; center=({pose.x:.3f},"
+                             f"{pose.y:.3f}), size=({width:.3f},{height:.3f}), bounds={config['bounds']}")
         obj['center'] = [pose.x, pose.y]
         obj['size'] = [width, height, sz]
         obj['yaw'] = pose.yaw
+        obj['crosses_boundary'] = not contained
     for i, obj in enumerate(result['objects']):
         for other in result['walls'] + result['objects'][:i]:
             if all(abs(a-b) <= (sa+sb)/2 for a,b,sa,sb in
@@ -61,7 +69,8 @@ class ObjectTracker:
                 self.baseline = poses
                 for obj in live['objects']:
                     print(f"Live object: {obj['id']}, center={obj['center']}, "
-                          f"yaw={obj['yaw']:.3f}, AABB={obj['size'][:2]}", flush=True)
+                          f"yaw={obj['yaw']:.3f}, AABB={obj['size'][:2]}, "
+                          f"crosses_boundary={obj['crosses_boundary']}", flush=True)
                 return live
             if time.monotonic() >= deadline:
                 missing = [name for name,p in self.providers.items()

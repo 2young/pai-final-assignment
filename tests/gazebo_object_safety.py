@@ -1,6 +1,7 @@
-"""Explicit integration check: requires a running maze; moves/deletes red_box.
+"""Explicit integration check: requires a fresh maze with robot at (-5,-4).
+Moves/deletes red_box.
 
-Run after testing arrival, then restart the maze to restore the deleted box:
+Restart before running, then restart again to restore the deleted box:
   docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /workspace/tests/gazebo_object_safety.py'
 Not collected by pytest. Uses the real CLI, physics, pose bridge and cmd_vel.
 """
@@ -72,8 +73,9 @@ def main():
         assert any(m != (0.,0.) for m in messages), 'No motion command observed'
 
     try:
-        for x,y,expected in [(0,-3,'overlaps'),(9,0,'outside field'),
-                              (1,-3,'No reachable approach point')]:
+        # The near-start box blocks the conservative A* start clearance.
+        for x,y,expected in [(0,-3,'overlaps'),(20,0,'outside operating area'),
+                              (-5,-2,'No reachable approach point')]:
             place(x,y)
             start()
             finished(expected,stationary=True)

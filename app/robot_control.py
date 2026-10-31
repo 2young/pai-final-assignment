@@ -60,9 +60,11 @@ def main():
     results = [(text, predict(clf, text)) for text in commands]
     for text, intent in results:
         print(f"AI inference: {text!r} -> {intent}", flush=True)
-    from grid_map import GridMap, load_config
-    from target_resolver import resolve_target, plan_to_object
-    from path_planner import plan,route_score
+    from grid_map import load_config
+    from target_resolver import resolve_target
+    from path_planner import route_score
+    from adaptive_planner import adaptive_plan
+    from boundary_entry import plan_boundary_entry,execute_boundary_entry
     config = load_config()
     goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
     if goal_mode not in ('contact','stand_off'):
@@ -112,7 +114,7 @@ def main():
             if goal_mode == 'contact' and targets:
                 from motion_config import ContactSettings
                 ContactSettings.from_config(config)  # Validate before any motion.
-                from contact_goal import ContactMonitor, plan_contact, touch, can_resume_touch
+                from contact_goal import ContactMonitor, touch, can_resume_touch
                 from contact_speed import FEEDBACK_WALL_TIMEOUT
                 contact_guard=lambda:tracker.assert_unchanged(max_age=FEEDBACK_WALL_TIMEOUT)
                 contacts = {o['id']: ContactMonitor(node,o['id']) for o in targets.values()}
@@ -121,7 +123,6 @@ def main():
 
             def prepare_navigation():
                 live = tracker.snapshot()
-                navigator.grid = GridMap(live)
                 navigator.planning_pose = navigator.current()
                 start = navigator.planning_pose[:2]
                 tracker.assert_unchanged()
@@ -141,14 +142,18 @@ def main():
                     raise RuntimeError('Robot moved while planning; issue command again')
 
         if args.goal is not None:
-            _, start = prepare_navigation()
+            live, start = prepare_navigation()
             yaw=navigator.planning_pose[2]
-            route = plan(navigator.grid, start, tuple(args.goal),start_yaw=yaw)
+            entry=plan_boundary_entry(live,navigator.planning_pose)
+            route_start=entry['goal'] if entry else start
+            navigator.grid,route=adaptive_plan(live,route_start,goal=tuple(args.goal),start_yaw=yaw)
             score=route_score(route,yaw)
             length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
             print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, "
                   f"planned_turns={score[0]}, waypoints={route}", flush=True)
             validate_plan_start(start)
+            if entry:
+                execute_boundary_entry(navigator,live,entry,lambda:tracker.assert_unchanged(max_age=.3))
             navigator.follow(route, guard=tracker.assert_unchanged)
         for text, intent in results:
             if intent == "GO_TO_OBJECT":
@@ -157,12 +162,13 @@ def main():
                 target = next(o for o in live['objects'] if o['id'] == targets[text]['id'])
                 if goal_mode == 'contact' and contacts[target['id']].subscription.get_publisher_count() == 0:
                     raise RuntimeError('No ROS contact bridge; restart maze')
-                if (goal_mode == 'contact' and not navigator.grid.free(navigator.grid.cell(start))
-                        and can_resume_touch(live,navigator.provider.current(),target)):
+                if goal_mode == 'contact' and can_resume_touch(live,navigator.provider.current(),target):
                     touch(navigator,live,target,contacts[target['id']],contact_guard)
                     continue
-                route = (plan_contact(navigator.grid,start,target,start_yaw=yaw) if goal_mode == 'contact'
-                         else plan_to_object(navigator.grid,start,target,start_yaw=yaw))
+                entry=plan_boundary_entry(live,navigator.planning_pose)
+                route_start=entry['goal'] if entry else start
+                navigator.grid,route=adaptive_plan(live,route_start,target=target,start_yaw=yaw,
+                                                   contact=goal_mode=='contact')
                 final_yaw=(math.atan2(target['center'][1]-route[-1][1],
                                      target['center'][0]-route[-1][0]) if goal_mode=='contact' else None)
                 score=route_score(route,yaw,final_yaw)
@@ -171,6 +177,9 @@ def main():
                       f"length={length:.2f}m, planned_turns={score[0]}, "
                       f"planned_yaw={math.degrees(score[2]):.1f}deg, waypoints={route}", flush=True)
                 validate_plan_start(start)
+                if entry:
+                    execute_boundary_entry(navigator,live,entry,contact_guard if goal_mode=='contact'
+                                           else lambda:tracker.assert_unchanged(max_age=.3))
                 phases=[navigator.follow(route, guard=tracker.assert_unchanged)]
                 if goal_mode == 'contact':
                     phases.append(touch(navigator,live,target,contacts[target['id']],contact_guard))

@@ -80,13 +80,16 @@ def plan_contact(grid, start, target, start_yaw=None):
     # its nominal goal falls in a conservatively occupied boundary grid cell.
     accepted=set()
     for approach,heading in approach_candidates(grid,target,start,start_yaw,extras=(.35,.25,.45,.15)):
+        grid.check_budget()
         key=round(heading,8)
         if key in accepted:
             continue
         distance=math.dist(approach,(x,y))
         front = grid.config['robot']['footprint_bounds'][2]
         radius = target_ray_radius(target,heading+math.pi)
-        travel = distance-radius-front+.08
+        # Validate up to the expected physical touch (front bound has 1cm
+        # allowance). Runtime footprint checks still guard any overtravel.
+        travel = distance-radius-front+.01
         n = max(1,math.ceil(travel/.02))
         if not all(footprint_free(grid.config,
                    (approach[0]+math.cos(heading)*travel*i/n,

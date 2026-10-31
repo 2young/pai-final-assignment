@@ -40,7 +40,7 @@ def test_rotated_rectangle_is_conservatively_enclosed():
 
 
 @pytest.mark.parametrize('state,reason', [
-    (pose(x=8),'outside'), (pose(x=0,y=-3),'overlaps'),
+    (pose(x=20),'outside'), (pose(x=0,y=-3),'overlaps'),
     (pose(z=1),'ground'), (pose(roll=.1),'upright'),
     (pose(pitch=.1),'upright'), (pose(x=math.nan),'non-finite')])
 def test_invalid_object_placement_is_rejected(state,reason):
@@ -49,7 +49,8 @@ def test_invalid_object_placement_is_rejected(state,reason):
 
 
 def test_moved_object_with_no_approach_is_rejected():
-    cfg = runtime_config(load_config(), {'red_box':pose(x=1,y=-3)})
+    cfg=load_config();cfg['bounds']=[-8,-8,8,8]  # Explicitly sealed legacy field.
+    cfg = runtime_config(cfg, {'red_box':pose(x=1,y=-3)})
     with pytest.raises(ValueError,match='No reachable'):
         plan_to_object(GridMap(cfg),(-5,-4),cfg['objects'][0])
 
