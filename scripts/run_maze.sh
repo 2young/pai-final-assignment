@@ -30,6 +30,7 @@ sys.path.insert(0, '/workspace/app')
 from grid_map import load_config
 for obj in load_config()['objects']:
     print(f"/model/{obj['id']}/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V")
+    print(f"/model/{obj['id']}/contact@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts")
 PY
 )
 setsid ros2 run ros_gz_bridge parameter_bridge \

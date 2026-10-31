@@ -10,7 +10,8 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
-COMMAND = ['python3', '/workspace/app/robot_control.py', '赤いオブジェクトまで行ってください']
+COMMAND = ['python3', '/workspace/app/robot_control.py', '--goal-mode', 'stand_off',
+           '赤いオブジェクトまで行ってください']
 
 
 def service(name, request_type, request):

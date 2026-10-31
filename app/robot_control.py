@@ -46,6 +46,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="AI test without ROS/Gazebo")
     parser.add_argument("--demo", action="store_true", help="Use preselected instructions")
     parser.add_argument("--goal", nargs=2, type=float, metavar=("X", "Y"))
+    parser.add_argument("--goal-mode", choices=['contact','stand_off'],
+                        help="Object goal: sensor-confirmed touch or stand-off")
     args = parser.parse_args()
     if not Path(MODEL_PATH).is_file():
         raise SystemExit("Model not found. Run python3 app/train.py first.")
@@ -62,6 +64,9 @@ def main():
     from target_resolver import resolve_target, plan_to_object
     from path_planner import plan
     config = load_config()
+    goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
+    if goal_mode not in ('contact','stand_off'):
+        raise ValueError('goal_mode must be contact or stand_off')
     # Resolve before starting any motion; a failed command cancels the batch.
     try:
         targets = {text: resolve_target(text, config) for text, intent in results
@@ -104,6 +109,11 @@ def main():
             from object_tracker import ObjectTracker
             tracker = ObjectTracker(node, config)
             navigator = Navigator(node, pub, None, config=config)
+            if goal_mode == 'contact' and targets:
+                from contact_goal import ContactMonitor, plan_contact, touch, can_resume_touch
+                contacts = {o['id']: ContactMonitor(node,o['id']) for o in targets.values()}
+                for monitor in contacts.values():
+                    monitor.require_sensor()
 
             def prepare_navigation():
                 live = tracker.snapshot()
@@ -122,11 +132,20 @@ def main():
             if intent == "GO_TO_OBJECT":
                 live, start = prepare_navigation()
                 target = next(o for o in live['objects'] if o['id'] == targets[text]['id'])
-                route = plan_to_object(navigator.grid, start, target)
+                if goal_mode == 'contact' and contacts[target['id']].subscription.get_publisher_count() == 0:
+                    raise RuntimeError('No ROS contact bridge; restart maze')
+                if (goal_mode == 'contact' and not navigator.grid.free(navigator.grid.cell(start))
+                        and can_resume_touch(live,navigator.provider.current(),target)):
+                    touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged)
+                    continue
+                route = (plan_contact(navigator.grid,start,target) if goal_mode == 'contact'
+                         else plan_to_object(navigator.grid,start,target))
                 length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
                 print(f"A*: start={start}, goal={route[-1]}, target={targets[text]['id']}, "
                       f"length={length:.2f}m, waypoints={route}", flush=True)
                 navigator.follow(route, guard=tracker.assert_unchanged)
+                if goal_mode == 'contact':
+                    touch(navigator,live,target,contacts[target['id']],tracker.assert_unchanged)
                 continue
             linear, angular, duration = MOTIONS[intent]
             print(f"Executing {intent} (linear={linear}, angular={angular})", flush=True)

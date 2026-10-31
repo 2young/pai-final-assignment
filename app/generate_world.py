@@ -22,6 +22,8 @@ def generate(source, output, config):
     root = ET.parse(source).getroot()
     world = root.find('world')
     world.set('name', 'maze')
+    ET.SubElement(world, 'plugin', filename='gz-sim-contact-system',
+                  name='gz::sim::systems::Contact')
     for model in list(world.findall('model')):
         if model.get('name') not in ('vehicle_blue', 'ground_plane'):
             world.remove(model)
@@ -49,12 +51,19 @@ def generate(source, output, config):
             box = geometry.find('box/size')
             if sphere is not None:
                 bound = math.hypot(*values[:2]) + float(sphere.text)
+                hx = hy = float(sphere.text)
             elif box is not None and all(abs(v) < 1e-6 for v in values[3:]):
                 sx, sy, _ = map(float, box.text.split())
                 bound = math.hypot(abs(values[0])+sx/2, abs(values[1])+sy/2)
+                hx,hy = sx/2,sy/2
             else:
                 raise ValueError('Unexpected vehicle geometry; remeasure footprint')
             envelope = max(envelope, bound)
+            if 'footprint_bounds' in config['robot']:
+                x0,y0,x1,y1 = config['robot']['footprint_bounds']
+                if not (x0 <= values[0]-hx and values[0]+hx <= x1 and
+                        y0 <= values[1]-hy and values[1]+hy <= y1):
+                    raise ValueError('Robot footprint_bounds does not contain collision geometry')
     if config['robot']['radius'] < envelope:
         raise ValueError(f"Robot radius too small: need at least {envelope:.3f}m")
     x, y, yaw = config['robot']['spawn']
@@ -82,6 +91,13 @@ def generate(source, output, config):
         if obj in config['objects']:
             add_pose_publisher(model)
         link = ET.SubElement(model, 'link', name='body')
+        if obj in config['objects']:
+            sensor = ET.SubElement(link, 'sensor', name='contact_sensor', type='contact')
+            ET.SubElement(sensor, 'always_on').text = 'true'
+            ET.SubElement(sensor, 'update_rate').text = '30'
+            contact = ET.SubElement(sensor, 'contact')
+            ET.SubElement(contact, 'collision').text = 'collision'
+            ET.SubElement(contact, 'topic').text = f"/model/{obj['id']}/contact"
         for tag in ('collision','visual'):
             element = ET.SubElement(link, tag, name=tag)
             box = ET.SubElement(ET.SubElement(element, 'geometry'), 'box')

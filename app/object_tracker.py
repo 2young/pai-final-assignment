@@ -20,6 +20,7 @@ def runtime_config(config, poses):
                    (pose.x, pose.y, pose.z, pose.roll, pose.pitch, pose.yaw)):
             raise ValueError(f"{obj['id']}: non-finite object pose")
         sx, sy, sz = obj['size']
+        obj['body_size'] = list(obj['size'])
         if (abs(pose.z-sz/2) > HEIGHT_TOLERANCE or
                 abs(pose.roll) > UPRIGHT_TOLERANCE or abs(pose.pitch) > UPRIGHT_TOLERANCE):
             raise ValueError(f"{obj['id']}: place object upright on the ground")

@@ -1,7 +1,8 @@
 {
   "bounds": [-8, -8, 8, 8],
   "resolution": 0.1,
-  "robot": {"spawn": [-5, -4, 0], "radius": 1.85, "margin": 0.25},
+  "goal_mode": "contact",
+  "robot": {"spawn": [-5, -4, 0], "radius": 1.85, "margin": 0.25, "footprint_bounds": [-1.72, -0.94, 0.31, 0.94]},
   "navigation": {"max_linear_speed": 0.7, "max_angular_speed": 0.5, "distance_gain": 0.8, "heading_gain": 1.8},
   "walls": [
     {"id": "detour", "center": [0, -3], "size": [0.3, 7, 1]},
