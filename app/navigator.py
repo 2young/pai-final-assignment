@@ -35,7 +35,7 @@ class Navigator:
                 return self.provider.current()
         raise RuntimeError('No world pose; start maze launcher and pose bridge')
 
-    def follow(self, route, timeout=240):
+    def follow(self, route, timeout=240, guard=None):
         import rclpy
         from geometry_msgs.msg import Twist
         deadline = time.monotonic()+timeout
@@ -45,6 +45,8 @@ class Navigator:
                 best, progress = math.inf, time.monotonic()
                 while True:
                     rclpy.spin_once(self.node, timeout_sec=0.05)
+                    if guard is not None:
+                        guard()
                     pose = self.provider.current()
                     minimum_clearance = min(minimum_clearance, self.grid.clearance(pose[:2]))
                     if not self.grid.point_free(pose[:2]):
@@ -67,7 +69,17 @@ class Navigator:
                     self.pub.publish(msg)
                     time.sleep(0.03)
                 print(f'Waypoint {index}: {goal}, error={distance:.3f}m', flush=True)
-            print(f'ARRIVED: pose={self.provider.current()}, goal={route[-1]}, '
+            # Process observations that arrived while the final STOP was sent.
+            for _ in range(10):
+                rclpy.spin_once(self.node, timeout_sec=0)
+            if guard is not None:
+                guard()
+            final_pose = self.provider.current()
+            error = math.dist(final_pose[:2], route[-1])
+            if error > 0.10 or not self.grid.point_free(final_pose[:2]):
+                raise RuntimeError('Final stopped pose is outside goal tolerance or safe map')
+            minimum_clearance = min(minimum_clearance, self.grid.clearance(final_pose[:2]))
+            print(f'ARRIVED: pose={final_pose}, goal={route[-1]}, error={error:.3f}m, '
                   f'minimum_footprint_clearance={minimum_clearance:.3f}m', flush=True)
         finally:
             stop(self.pub)

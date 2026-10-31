@@ -2,7 +2,7 @@
 
 Apple Silicon / Docker Desktop / Ubuntu 24.04 ARM64 / ROS 2 Jazzy / Gazebo Harmonic。
 日本語をローカルの文字n-gram TF-IDF＋LinearSVCで分類し、登録された赤い箱の手前まで青い差動二輪車両が移動します。
-AIは意図分類、A*は経路計算、P制御は走行を担当します。色と物体の位置は登録データであり、画像認識は行いません。
+AIは意図分類、A*は経路計算、P制御は走行を担当します。色・名前・サイズは登録データを使い、物体の現在位置はGazeboから取得します。画像認識は行いません。
 
 ## 起動
 
@@ -30,15 +30,32 @@ docker compose exec sim bash /workspace/scripts/run_maze.sh
 docker compose exec -e HEADLESS=1 sim bash /workspace/scripts/run_maze.sh
 ```
 
+## 箱を移動してから指示する
+
+今回の更新を反映する際は、起動中の迷路をターミナルAでCtrl+C終了し、上の起動コマンドで再起動してください。Dockerの再ビルド・分類器の再学習は、この位置取得の更新だけでは不要です。
+
+1. Gazeboの赤い箱（モデル名`red_box`）を選択します。
+2. 移動ツールまたはPose編集で、X/Y座標を変更します。例として`x=-5, y=3`へ移動できます。箱の中心のZ座標は`0.4m`を維持してください。
+3. 水平面内の回転（yaw）は可能です。箱は立てたまま配置し、壁・車両への重なりや地図外への配置を避けます。壁は動かさないでください。
+4. Gazeboを再生状態にし、移動操作を終えてからターミナルBで次のコマンドを実行します。
+
 ターミナルB：
 
 ```sh
 docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /workspace/app/robot_control.py "赤いオブジェクトまで行ってください"'
 ```
 
-分類、現在位置、接近ゴール、ウェイポイント、各点の到達誤差、`ARRIVED`と走行中の最小車体離隔を出力します。
+`Live object: red_box, center=[...]`に移動後の座標が出ることを確認してください。
+箱は再配置できますが、安全な接近地点と経路があることが到達条件です。
+
+分類、ロボットと箱の現在位置、接近ゴール、ウェイポイント、各点の到達誤差、`ARRIVED`と走行中の最小車体離隔を出力します。
 最終位置の許容誤差は0.10m。現在位置から毎回計画するため、2回目の指示でも初期位置を仮定しません。
 同時に別の速度指令を送るプロセスを動かさないでください。
+
+指示のたびに全登録オブジェクトの位置を読み直し、地図を作り直します。箱の元の位置は占有地図から取り除きます。
+走行中に箱が計画時から5cm超移動、または姿勢が3度超変化した場合は停止します。
+追いかけ続ける機能はなく、箱を置き直して同じコマンドを再実行します。
+箱の位置情報が取得できない場合は停止し、初期座標では走行しません。
 
 座標指定も可能です（壁と箱を避けた自由空間内の座標を指定）：
 
@@ -75,13 +92,14 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 
 | ファイル | 役割 |
 |---|---|
-| `config/maze.json` | 壁・箱・初期位置・車体半径・地図の唯一の配置定義 |
+| `config/maze.json` | 固定壁・箱の登録情報と初期配置・車体寸法 |
 | `app/generate_world.py` | インストール済み公式車両を残し、設定から迷路SDFを生成 |
 | `app/intent_model.py` | ローカルAI分類、停止語の優先処理 |
 | `app/target_resolver.py` | 色・名前の照合、到達可能な接近地点を選択 |
 | `app/grid_map.py` | 膨張済み占有格子と安全な線分の確認 |
 | `app/path_planner.py` | 4近傍A*、マンハッタン距離、経路復元・直線区間の圧縮 |
-| `app/pose_provider.py` | Gazeboワールド位置の購読、Quaternion→yaw、鮮度確認 |
+| `app/pose_provider.py` | 車両・登録オブジェクトのワールド位置、姿勢、鮮度確認 |
+| `app/object_tracker.py` | 実行時位置のスナップショット、配置検査、走行中の移動検知 |
 | `app/navigator.py` | 低速の位置フィードバック、到達・停滞・停止処理 |
 | `app/robot_control.py` | 自然言語と座標指定のCLI、従来操作との統合 |
 | `scripts/run_maze.sh` | SDF生成、GazeboとROS bridgeの起動・終了 |
@@ -89,7 +107,7 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 地図は16m四方、範囲`[-8,8] × [-8,8]`、セル幅0.1m。境界は計画上の境界です。
 ワールド座標`(x,y)`から`(floor((x+8)/0.1), floor((y+8)/0.1))`へ変換し、
 セル中心は`(-8+(i+0.5)*0.1, -8+(j+0.5)*0.1)`です。
-車両初期位置は`(-5,-4, yaw=0)`。赤い箱の中心は`(5,4)`です。
+車両初期位置は`(-5,-4, yaw=0)`。赤い箱の初期中心は`(5,4)`です。自律走行ではGazebo上の現在位置を使います。
 
 公式車両は車体長が約2mあり、駆動輪中央と元のモデル原点が約0.55mずれています。
 生成時に全リンクを平行移動し、迷路用車両の原点を駆動輪中央に合わせます。
@@ -99,13 +117,16 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /w
 
 ## 位置トピックの確認
 
-専用ワールドに`PosePublisher`を追加し、`vehicle_blue`のワールドposeを30Hzで配信します。
+専用ワールドに`PosePublisher`を追加し、`vehicle_blue`と登録オブジェクトのワールドposeを30Hzで配信します。
 `/model/vehicle_blue/pose`のGazebo `gz.msgs.Pose_V`をROS `tf2_msgs/msg/TFMessage`へブリッジします。
-`child_frame_id=vehicle_blue`のみを購読します。車輪オドメトリの原点や積分誤差には依存しません。
+赤い箱の`/model/red_box/pose`も同じ型でブリッジし、`frame_id=maze`と各モデルの`child_frame_id`を照合します。
+静的な箱にも現在時刻付きのposeが配信されるため、移動後の位置と受信の鮮度を確認できます。車輪オドメトリの原点や積分誤差には依存しません。
+箱が回転している場合は、回転した箱を包むワールド軸に平行な矩形で地図と接近候補を計算します。
 
 ```sh
 docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && ros2 topic list -t'
 docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && ros2 topic echo /model/vehicle_blue/pose --once'
+docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && ros2 topic echo /model/red_box/pose --once'
 docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && gz topic -i -t /model/vehicle_blue/pose'
 ```
 
@@ -116,20 +137,23 @@ docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && gz topic -
 
 ## 制限と検証
 
-既知で静的な障害物のみを扱います。Nav2、SLAM、外部API、大規模LLMは使用しません。
+壁は既知で固定とし、登録された箱は走行開始前に移動できます。Nav2、SLAM、外部API、大規模LLMは使用しません。
 SIGKILL・OS停止・通信切断のようにfinallyを実行できない停止に対する独立watchdogはありません。
 地図設定を変更した場合はワールドと走行プロセスを両方再起動してください。
 
 単体テストには迂回、行き止まり、到達不能、車体より狭い通路、無効座標、対象不明、
 位置の鮮度、理想運動モデルでの追従、SDFと配置定義の一致、既存日本語分類の回帰を含めます。
 Gazeboの物理シミュレーション結果は、単体テストとは区別して[検証記録](VALIDATION.md)に記載しています。
-11件の単体テストと、HEADLESSでの赤い箱への到着（誤差約5.4cm、最小包絡円離隔約43cm）を確認済みです。
+単体テストとHEADLESSでの走行結果は検証記録を参照してください。移動後の占有・回転・無効配置・対象移動時の停止もテスト対象です。
 
 ## トラブルシューティング
 
 - 車両が表示されない：`docker compose logs sim`とターミナルAの出力を確認。ソフトウェア描画のためDockerメモリは8GB以上を推奨します。
 - `No subscribers`：ターミナルAのbridgeが起動しているか確認します。
 - `No world pose`：公式デモではなく専用迷路を起動し、上のトピックを確認します。
+- `No fresh object world pose`：迷路を再起動し、`/model/red_box/pose`を確認してください。初期座標への自動切替はしません。
+- `object moved during navigation`：箱の配置を確定してコマンドを再実行してください。
+- `overlaps` / `outside field` / `place object upright`：箱を地図内の地面上へ配置し直してください。
 - `Old model`：`train.py`で再学習します。
 - タイムアウト：Gazeboの再生状態・実時間速度を確認します。重い場合は`HEADLESS=1`で切り分けます。
 

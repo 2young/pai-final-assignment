@@ -6,6 +6,17 @@ import xml.etree.ElementTree as ET
 from grid_map import load_config
 
 
+def add_pose_publisher(model):
+    """Publish model pose periodically, including static models moved by the GUI."""
+    plugin = ET.SubElement(model, 'plugin', filename='gz-sim-pose-publisher-system',
+                           name='gz::sim::systems::PosePublisher')
+    for name, value in [('publish_link_pose','false'), ('publish_sensor_pose','false'),
+                        ('publish_collision_pose','false'), ('publish_visual_pose','false'),
+                        ('publish_nested_model_pose','false'), ('publish_model_pose','true'),
+                        ('use_pose_vector_msg','true'), ('update_frequency','30')]:
+        ET.SubElement(plugin, name).text = value
+
+
 def generate(source, output, config):
     root = ET.parse(source).getroot()
     world = root.find('world')
@@ -57,19 +68,15 @@ def generate(source, output, config):
             el = ET.SubElement(drive, name)
         el.text = value
     # Ground truth world pose, independent of wheel slip and odometry origin.
-    plugin = ET.SubElement(vehicle, 'plugin', filename='gz-sim-pose-publisher-system',
-                           name='gz::sim::systems::PosePublisher')
-    for name, value in [('publish_link_pose','false'), ('publish_sensor_pose','false'),
-                        ('publish_collision_pose','false'), ('publish_visual_pose','false'),
-                        ('publish_nested_model_pose','false'), ('publish_model_pose','true'),
-                        ('use_pose_vector_msg','true'), ('update_frequency','30')]:
-        ET.SubElement(plugin, name).text = value
+    add_pose_publisher(vehicle)
     for obj in config['walls'] + config['objects']:
         model = ET.SubElement(world, 'model', name=obj['id'])
         ET.SubElement(model, 'static').text = 'true'
         x, y = obj['center']
         sx, sy, sz = obj['size']
         ET.SubElement(model, 'pose').text = f'{x} {y} {sz/2} 0 0 0'
+        if obj in config['objects']:
+            add_pose_publisher(model)
         link = ET.SubElement(model, 'link', name='body')
         for tag in ('collision','visual'):
             element = ET.SubElement(link, tag, name=tag)

@@ -72,7 +72,8 @@ def main():
         targets = None  # Enter ROS finally block to publish STOP before reporting.
     if args.dry_run:
         for text, target in targets.items():
-            print(f"Registered target: {target['id']} at {target['center']}")
+            print(f"Registered target: {target['id']} (initial position={target['center']}; "
+                  "live position is obtained only during ROS execution)")
         return
 
     import rclpy
@@ -100,22 +101,32 @@ def main():
             raise ValueError("Target unknown or ambiguous; stopped")
         if args.goal is not None or targets:
             from navigator import Navigator
-            grid = GridMap(config)
-            navigator = Navigator(node, pub, grid)
+            from object_tracker import ObjectTracker
+            tracker = ObjectTracker(node, config)
+            navigator = Navigator(node, pub, None)
+
+            def prepare_navigation():
+                live = tracker.snapshot()
+                navigator.grid = GridMap(live)
+                start = navigator.current()[:2]
+                tracker.assert_unchanged()
+                return live, start
+
         if args.goal is not None:
-            start = navigator.current()[:2]
-            route = plan(grid, start, tuple(args.goal))
+            _, start = prepare_navigation()
+            route = plan(navigator.grid, start, tuple(args.goal))
             length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
             print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, waypoints={route}", flush=True)
-            navigator.follow(route)
+            navigator.follow(route, guard=tracker.assert_unchanged)
         for text, intent in results:
             if intent == "GO_TO_OBJECT":
-                start = navigator.current()[:2]
-                route = plan_to_object(grid, start, targets[text])
+                live, start = prepare_navigation()
+                target = next(o for o in live['objects'] if o['id'] == targets[text]['id'])
+                route = plan_to_object(navigator.grid, start, target)
                 length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
                 print(f"A*: start={start}, goal={route[-1]}, target={targets[text]['id']}, "
                       f"length={length:.2f}m, waypoints={route}", flush=True)
-                navigator.follow(route)
+                navigator.follow(route, guard=tracker.assert_unchanged)
                 continue
             linear, angular, duration = MOTIONS[intent]
             print(f"Executing {intent} (linear={linear}, angular={angular})", flush=True)

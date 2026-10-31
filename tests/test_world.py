@@ -22,6 +22,12 @@ def test_world_obstacles_match_config(tmp_path):
         assert float(world.find(f"model[@name='vehicle_blue']/link[@name='{name}']/pose").text.split()[0]) == 0
     for obj in cfg['walls']+cfg['objects']:
         model = world.find(f"model[@name='{obj['id']}']")
+        publisher = model.find("plugin[@name='gz::sim::systems::PosePublisher']")
+        if obj in cfg['objects']:
+            assert publisher.find('publish_model_pose').text == 'true'
+            assert publisher.find('update_frequency').text == '30'
+        else:
+            assert publisher is None
         assert list(map(float,model.find('pose').text.split()[:2])) == obj['center']
         for kind in ['collision','visual']:
             size = model.find(f'link/{kind}/geometry/box/size')

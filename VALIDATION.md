@@ -1,5 +1,81 @@
 # 検証記録（2026-10-31 JST）
 
+## 箱の移動対応：追加検証（2026-10-31 JST）
+
+初回実装の固定位置試験に加え、以下を実施しました。現在の単体テストは **28件成功** です。
+
+```sh
+docker compose exec sim python3 -m pytest -q /workspace/tests
+# 28 passed in 0.63s
+```
+
+移動前後で占有位置が置き換わること、設定JSONが変更されないこと、回転した矩形の包含、
+地図外・重なり・非接地・傾き・非有限値の拒否、最新観測なしの拒否、
+移動・回転・位置喪失の監視、停止中に対象が動いた場合に到着と報告しないことを追加で検証しました。
+
+### Gazeboの静的な箱の位置取得
+
+`red_box`にもPosePublisherとROS bridgeを追加しました。
+`/model/red_box/pose`はROS `tf2_msgs/msg/TFMessage`、Gazebo `gz.msgs.Pose_V`で、
+`frame_id=maze`、`child_frame_id=red_box`を実測しました。
+
+静的モデルをワールドの`set_pose`サービスで`(5,4,0.4)`から`(-5,3,0.4)`へ動かし、
+配信座標も`(-5,3,0.4)`に変わることを確認しました。
+移動操作には以下を使用しました。
+
+```sh
+docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && gz service -s /world/maze/set_pose --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean --timeout 2000 --req "name: \"red_box\", position: {x: -5, y: 3, z: 0.4}, orientation: {w: 1}"'
+```
+
+GUIのマウス操作自体は未検証です。物理シミュレーション試験はHEADLESSで行いました。
+
+### 同じ日本語コマンドによる移動後の到着
+
+使用コマンドは変更していません。
+
+```sh
+docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /workspace/app/robot_control.py "赤いオブジェクトまで行ってください"'
+```
+
+| 配置 | 接近ゴール | 停止後のロボット位置 | 最終誤差 | 最小車体包絡円離隔 |
+|---|---|---|---|---|
+| `(-5,3)`, yaw=0 | `(-5,0.25)` | `(-5.0506205,0.2256138)` | 約0.056m | 0.625m |
+| `(-4.8,-3)`, yaw=45度 | `(-4.8,-0.1257359)` | `(-4.7682933,-0.1694214)` | 約0.054m | 0.540m |
+| 初期配置`(5,4)`の回帰試験 | `(2.25,4)` | `(2.2264828,4.0489751)` | 約0.054m | 0.432m |
+
+1回目は初期ロボット位置から約4.32m、2回目はその到着位置から約0.78mの計画経路でした。
+2回目の箱の占有矩形は、元の`0.6 × 0.6m`から回転を包む`約0.8485 × 0.8485m`になりました。
+いずれも`Live object`ログで実行時位置を確認し、`ARRIVED`で終了しました。
+初期配置の回帰試験ではロボットも初期位置にリセットし、約15.82mの経路を走行しました。
+
+### 実シミュレーションでの失敗時停止
+
+専用の統合テストを追加しました。速度トピックを別ノードで購読し、実CLIの出力と停止指令を検証します。
+**このテストは箱を移動・削除するため、終了後に迷路を再起動してください。**
+
+```sh
+docker compose exec sim bash -lc 'source /opt/ros/jazzy/setup.bash && python3 /workspace/tests/gazebo_object_safety.py'
+```
+
+| 条件 | 結果 |
+|---|---|
+| 箱を壁内`(0,-3)`へ移動 | `overlaps`で拒否、速度指令はすべてゼロ |
+| 箱を地図外`(9,0)`へ移動 | `object outside field`で拒否、速度指令はすべてゼロ |
+| 箱を接近不能な`(1,-3)`へ移動 | `No reachable approach point`で拒否、速度指令はすべてゼロ |
+| 走行指令を確認してから箱を`(5,4)`→`(5,5)`へ移動 | `object moved during navigation`で中断、最後のTwistはゼロ |
+| 走行指令を確認してから箱を削除 | `red_box: World pose missing or stale`で中断、最後のTwistはゼロ |
+| 箱の削除後に再指示 | `No fresh object world pose`で拒否、初期座標へ走行せず、速度指令はすべてゼロ |
+
+全6条件がPASSで終了しました。
+launcherの終了後にGazeboとbridgeの子プロセスも残らないことを`pgrep`で確認しました。
+
+対象の動的追従や自動再計画は行いません。箱の移動を検知したら停止し、再指示で新しい地図・経路を作ります。
+壁の移動、未知の物体、GUIでの動画収録は今回の検証範囲に含みません。
+
+---
+
+以下は、初回実装時の固定位置を使った検証記録です。
+
 ## 環境
 
 Docker DesktopのARM64コンテナ、Ubuntu 24.04、ROS 2 Jazzy、Gazebo Harmonic。

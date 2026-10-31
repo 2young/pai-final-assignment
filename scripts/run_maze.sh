@@ -9,21 +9,33 @@ if [ -z "$source_sdf" ]; then
 fi
 python3 /workspace/app/generate_world.py --source "$source_sdf"
 cleanup() {
-  kill "${sim_pid:-}" "${bridge_pid:-}" 2>/dev/null || true
+  # ros2 / gz launch child processes; terminate their entire private groups.
+  if [ -n "${sim_pid:-}" ]; then kill -INT -- "-$sim_pid" 2>/dev/null || true; fi
+  if [ -n "${bridge_pid:-}" ]; then kill -TERM -- "-$bridge_pid" 2>/dev/null || true; fi
   wait 2>/dev/null || true
 }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 # Set HEADLESS=1 for automated physics verification; GUI remains the default.
 if [ "${HEADLESS:-0}" = 1 ]; then
-  gz sim -s -r /workspace/worlds/maze.sdf &
+  setsid gz sim -s -r /workspace/worlds/maze.sdf &
 else
-  gz sim -r /workspace/worlds/maze.sdf &
+  setsid gz sim -r /workspace/worlds/maze.sdf &
 fi
 sim_pid=$!
-ros2 run ros_gz_bridge parameter_bridge \
+# Use registry IDs for topics, matching the generated model names.
+mapfile -t object_bridges < <(python3 - <<'PY'
+import sys
+sys.path.insert(0, '/workspace/app')
+from grid_map import load_config
+for obj in load_config()['objects']:
+    print(f"/model/{obj['id']}/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V")
+PY
+)
+setsid ros2 run ros_gz_bridge parameter_bridge \
   '/model/vehicle_blue/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist' \
   '/model/vehicle_blue/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry' \
-  '/model/vehicle_blue/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V' &
+  '/model/vehicle_blue/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V' \
+  "${object_bridges[@]}" &
 bridge_pid=$!
 wait -n "$sim_pid" "$bridge_pid"

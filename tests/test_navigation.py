@@ -77,11 +77,14 @@ def test_steering_rotates_before_translating():
 
 def test_pose_freshness_and_frame_selection(monkeypatch):
     provider = PoseProvider.__new__(PoseProvider)
+    provider.model_name = 'vehicle_blue'
+    provider.state = None
+    provider.error = 'World pose missing'
     provider.pose, provider.received, provider.stamp = None, 0, None
     monkeypatch.setattr('pose_provider.time.monotonic',lambda:100)
     def transform(child, sec):
-        return NS(child_frame_id=child, header=NS(stamp=NS(sec=sec,nanosec=0)),
-                  transform=NS(translation=NS(x=-5,y=-4),
+        return NS(child_frame_id=child, header=NS(frame_id='maze',stamp=NS(sec=sec,nanosec=0)),
+                  transform=NS(translation=NS(x=-5,y=-4,z=.325),
                                rotation=NS(x=0,y=0,z=math.sqrt(.5),w=math.sqrt(.5))))
     provider.callback(NS(transforms=[transform('chassis',1)]))
     with pytest.raises(RuntimeError):
