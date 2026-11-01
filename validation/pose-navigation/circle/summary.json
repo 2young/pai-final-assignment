@@ -1,0 +1,98 @@
+[
+  {
+    "case": "open_straight",
+    "planner": "circle",
+    "run": 1,
+    "success": true,
+    "wall_seconds": 21.435768467000003,
+    "sim_seconds": 20.433999999999997,
+    "distance": 8.90013307969221,
+    "max_actual_speed": 1.3999999521721929,
+    "final_pose": [
+      4.400000350469949,
+      4.999999999999904,
+      -4.742718181862017e-15
+    ],
+    "reverse_observed": false
+  },
+  {
+    "case": "open_straight",
+    "planner": "circle",
+    "run": 2,
+    "success": true,
+    "wall_seconds": 21.419265593999967,
+    "sim_seconds": 20.46799999999999,
+    "distance": 8.900117298679312,
+    "max_actual_speed": 1.3999999521707562,
+    "final_pose": [
+      4.399999613264354,
+      4.999999999999911,
+      -4.347339457457295e-15
+    ],
+    "reverse_observed": false
+  },
+  {
+    "case": "open_straight",
+    "planner": "circle",
+    "run": 3,
+    "success": true,
+    "wall_seconds": 21.428329343999962,
+    "sim_seconds": 20.433999999999997,
+    "distance": 8.900048940097317,
+    "max_actual_speed": 1.3999999521712394,
+    "final_pose": [
+      4.400000259508101,
+      4.999999999999487,
+      -1.9018891693263694e-14
+    ],
+    "reverse_observed": false
+  },
+  {
+    "case": "maze",
+    "planner": "circle",
+    "run": 1,
+    "success": true,
+    "wall_seconds": 38.55340160100002,
+    "sim_seconds": 36.99200000000002,
+    "distance": 17.32099835986213,
+    "max_actual_speed": 1.4000208039494604,
+    "final_pose": [
+      4.398432681737121,
+      4.004070757447276,
+      -0.00528038837336126
+    ],
+    "reverse_observed": false
+  },
+  {
+    "case": "maze",
+    "planner": "circle",
+    "run": 2,
+    "success": true,
+    "wall_seconds": 39.12430697599996,
+    "sim_seconds": 37.365999999999985,
+    "distance": 17.331365089721892,
+    "max_actual_speed": 1.4000206497736047,
+    "final_pose": [
+      4.398971063972019,
+      4.004088185748181,
+      -0.0034693669141151844
+    ],
+    "reverse_observed": false
+  },
+  {
+    "case": "maze",
+    "planner": "circle",
+    "run": 3,
+    "success": true,
+    "wall_seconds": 38.13955176699994,
+    "sim_seconds": 36.822,
+    "distance": 17.320640030052594,
+    "max_actual_speed": 1.4000207296685638,
+    "final_pose": [
+      4.3984485018976285,
+      4.004068714413386,
+      -0.0052271783932038764
+    ],
+    "reverse_observed": false
+  }
+]

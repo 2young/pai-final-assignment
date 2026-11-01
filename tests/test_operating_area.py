@@ -17,6 +17,7 @@ def live(x,y=4,yaw=0):
 
 def test_old_field_outside_position_now_accepted_without_clamping():
     cfg=load_config();observed=runtime_config(cfg,{'red_box':WorldPose(8.4,4,.4,0,0,0)})
+    observed['planner_mode']='circle'
     assert observed['objects'][0]['center']==[8.4,4]
     assert cfg['objects'][0]['center']==[5,4]
     grid,route=adaptive_plan(observed,(4.4,4),target=observed['objects'][0],start_yaw=0,contact=True)
@@ -109,6 +110,29 @@ def test_fully_sealed_operating_area_is_not_reported_as_budget_failure():
         adaptive_plan(cfg,(-3,0),goal=(3,0))
 
 
+def test_moved_scene_finds_upper_detour_with_default_shared_budget(capsys):
+    # 2026-11-01 reported scene: the first two windows are disconnected.
+    # Repeated searches for contact candidates used to exhaust 200000
+    # expansions before the third window could find the upper detour.
+    cfg=runtime_config(load_config(),{
+        'west_wall':WorldPose(-10.400678634643555,0,.5,0,0,0),
+        'southeast_block':WorldPose(3.735650062561035,-7.39199686050415,.5,0,0,0),
+        'red_box':WorldPose(7.259823322296143,-3.4161500930786133,.4,0,0,0)})
+    cfg['planner_mode']='circle'  # Isolate the original connected-component regression.
+    start=(-7.985196588710534,-4.002379895941)
+    target=cfg['objects'][0]
+    grid,route=adaptive_plan(cfg,start,target=target,start_yaw=.7862289871416795,contact=True)
+    assert route[0]==start
+    assert max(y for x,y in route)>4
+    assert grid.bounds[3]==pytest.approx(5.6)
+    assert all(grid.planning_view().segment_free(a,b) for a,b in zip(route,route[1:]))
+    heading=math.atan2(target['center'][1]-route[-1][1],target['center'][0]-route[-1][0])
+    assert footprint_free(cfg,(*route[-1],heading),target['id'])
+    output=capsys.readouterr().out
+    assert 'Planning window 3:' in output
+    assert 'Planning window 4:' not in output
+
+
 def test_outside_coordinate_goal_is_rejected():
     with pytest.raises(ValueError,match='Coordinate goal outside operating area'):
         adaptive_plan(small_scene(),(-3,0),goal=(20,0))
@@ -122,6 +146,7 @@ def test_invalid_planning_settings_are_rejected(values):
 
 def test_boundary_entry_can_back_out_after_contact_then_replan():
     cfg=live(5)
+    cfg['planner_mode']='circle'
     entry=plan_boundary_entry(cfg,(11.4,4,0))
     assert entry['sign']==-1 and entry['goal'][0]<9.7
     grid,route=adaptive_plan(cfg,entry['goal'],target=cfg['objects'][0],start_yaw=0,contact=True)

@@ -54,3 +54,24 @@ class PlanningBudget:
         self.check()
         if count>self.settings.max_cells:
             raise PlanningLimitError(f'Planning grid limit reached: {count} > {self.settings.max_cells} cells')
+
+
+class PlanningSlice:
+    """Reserve part of one command's shared budget for a fast candidate search."""
+    def __init__(self,parent,seconds,expansions):
+        self.parent=parent
+        self.deadline=min(parent.deadline,time.monotonic()+seconds)
+        self.expansion_limit=parent.expansions+expansions
+
+    def check(self):
+        self.parent.check()
+        if time.monotonic()>=self.deadline:
+            raise PlanningLimitError('Circle candidate planning slice exhausted')
+
+    def expand(self):
+        self.check();self.parent.expand()
+        if self.parent.expansions>self.expansion_limit:
+            raise PlanningLimitError('Circle candidate expansion slice exhausted')
+
+    def cells(self,count):
+        self.check();self.parent.cells(count)

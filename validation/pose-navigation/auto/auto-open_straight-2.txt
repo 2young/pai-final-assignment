@@ -1,0 +1,21 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.6000000000000005, 2.0, 8.0, 8.1], grid=156x61, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 69, 'raw_length': 6.800000000000001, 'final_length': 6.750000226171448, 'waypoints': 2}
+POSE_COMPARE: circle=12.82s, oriented=10.16s (estimates)
+A*: start=(-4.500000226171448, 5.000000000001928), goal=(3.74, 5.000000000001925), target=red_box, length=8.24m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.500000226171448, 5.000000000001928), (3.74, 5.000000000001925)]
+FOLLOW_PATH: controller=pose_pursuit, blocks=1, length=8.24m
+ARRIVED: pose=(3.667325961338355, 5.000000000002048, -8.376017768307229e-14), goal=(3.74, 5.000000000001925), error=0.073m, minimum_footprint_clearance=0.473m, elapsed=9.34s, sim_elapsed=9.28s, max_actual_speed=1.400m/s, max_cross_track=0.000m, rotation_episodes=0, total_yaw=0.0deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(4.400082510886218, 5.000000000000789, -1.3102979208908642e-12), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=0, total_yaw=0.0deg, elapsed=5.03s, max_actual_speed=0.384m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=0, rotation_episodes=0, total_yaw=0.0deg

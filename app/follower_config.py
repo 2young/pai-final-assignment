@@ -20,6 +20,7 @@ class FollowerSettings:
     angular_acceleration: float = 1.5
     reaction_time: float = .35
     max_cross_track: float = .35
+    max_heading_error: float = .7
     pose_timeout: float = .3
     max_feedback_interval: float = .2
 
@@ -45,6 +46,8 @@ class FollowerSettings:
             raise ValueError('Reaction time must cover pose timeout and control latency')
         if self.rotate_threshold>math.pi/2:
             raise ValueError('rotate_threshold must not exceed pi/2')
+        if self.max_heading_error>math.pi/2:
+            raise ValueError('max_heading_error must not exceed pi/2')
 
     @classmethod
     def from_config(cls,config):

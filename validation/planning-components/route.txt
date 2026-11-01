@@ -1,0 +1,24 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-10.400678634643555, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[3.735650062561035, -7.39199686050415], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[7.259823322296143, -3.4161500930786133], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-11.0, -7.1000000000000005, 10.3, -0.4], grid=213x67, operating_bounds=[-12, -12, 12, 12]
+Planning window 1: No reachable approach point with safe contact corridor; expanding if possible
+Planning window 2: bounds=[-12, -10.100000000000001, 12, 2.6], grid=240x127, operating_bounds=[-12, -12, 12, 12]
+Planning window 2: No reachable approach point with safe contact corridor; expanding if possible
+Planning window 3: bounds=[-12, -12, 12, 5.6000000000000005], grid=240x176, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 229, 'raw_length': 25.202438661763953, 'final_length': 23.814785501556372, 'waypoints': 9}
+A*: start=(-7.985196588710534, -4.002379895941), goal=(7.259823322296143, -0.6661500930786133), target=red_box, length=23.81m, planned_turns=6, planned_yaw=205.3deg, waypoints=[(-7.985196588710534, -4.002379895941), (-7.75, -3.8499999999999996), (-4.449999999999999, 4.350000000000001), (-2.4499999999999993, 4.350000000000001), (-1.4499999999999993, 4.350000000000001), (-0.4499999999999993, 4.350000000000001), (0.5500000000000007, 4.350000000000001), (6.350000000000001, 2.950000000000001), (7.259823322296143, -0.6661500930786133)]
+FOLLOW_PATH: controller=pure_pursuit, length=23.69m, rounded_corners=3, stop_corners=1
+ARRIVED: pose=(7.235238928987732, -0.5949544976229654, -1.2938195470672165), goal=(7.259823322296143, -0.6661500930786133), error=0.075m, minimum_footprint_clearance=0.552m, elapsed=56.05s, sim_elapsed=28.87s, max_actual_speed=1.401m/s, max_cross_track=0.195m, rotation_episodes=4, total_yaw=239.2deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(7.2552886073188985, -2.8124037900125436, -1.5632851031815678), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=1, total_yaw=15.4deg, elapsed=18.85s, max_actual_speed=0.400m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=6, rotation_episodes=5, total_yaw=254.6deg

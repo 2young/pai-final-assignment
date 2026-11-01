@@ -1,0 +1,24 @@
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[-1.8, 0.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[50.0, 0.0], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=True
+Live obstacle: dead_end, center=[60.0, 0.0], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=True
+Live obstacle: west_wall, center=[1.8, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[80.0, 0.0], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=True
+Live obstacle: northwest_block, center=[90.0, 0.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=True
+Live obstacle: northeast_block, center=[100.0, 0.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=True
+Live obstacle: southwest_block, center=[110.0, 0.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=True
+Live obstacle: southeast_block, center=[120.0, 0.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=True
+Live object: red_box, center=[8.0, 8.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-3.1, -4.0, 3.0, 4.0], grid=61x80, operating_bounds=[-12, -12, 12, 12]
+Planning window 1: start outside field or occupied: (30, 49); expanding if possible
+Planning window 2: bounds=[-6.1000000000000005, -7.0, 6.0, 7.0], grid=121x140, operating_bounds=[-12, -12, 12, 12]
+Planning window 2: start outside field or occupied: (60, 79); expanding if possible
+Planning window 3: bounds=[-9.1, -10.0, 9.0, 10.0], grid=181x200, operating_bounds=[-12, -12, 12, 12]
+Planning window 3: start outside field or occupied: (90, 109); expanding if possible
+Planning window 4: bounds=[-12, -12, 12, 12], grid=240x240, operating_bounds=[-12, -12, 12, 12]
+Planning window 4: start outside field or occupied: (119, 129); expanding if possible
+POSE_FALLBACK: No reachable approach/route within operating area [-12, -12, 12, 12]: start outside field or occupied: (119, 129); preserving footprint and tracking margins
+PLANNER_SELECTED: hybrid
+A*: start=(-1.933573845839513e-12, 0.9999997738285541), goal=[0.0, -1.0], length=2.00m, planned_turns=0, waypoints=[(-1.933573845839513e-12, 0.9999997738285541), (-1.9083832284066737e-12, -0.9999999999999999)]
+FOLLOW_PATH: controller=pose_pursuit, blocks=1, length=2.00m
+ARRIVED: pose=(-2.4482551032878583e-12, -0.9268748718914498, 1.57079632679733), goal=(-1.9083832284066737e-12, -0.9999999999999999), error=0.073m, minimum_footprint_clearance=0.310m, elapsed=4.96s, sim_elapsed=4.79s, max_actual_speed=0.700m/s, max_cross_track=0.000m, rotation_episodes=0, max_heading_error=0.0deg, max_control_ms=0.99, total_yaw=0.0deg

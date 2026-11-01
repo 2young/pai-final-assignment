@@ -1,0 +1,50 @@
+[
+  {
+    "case": "reverse",
+    "planner": "auto",
+    "run": 1,
+    "success": true,
+    "wall_seconds": 7.7653573770001,
+    "sim_seconds": 6.663999999999987,
+    "distance": 1.9268746457200037,
+    "max_actual_speed": 0.6999999760035954,
+    "final_pose": [
+      -2.4482551032878583e-12,
+      -0.9268748718914498,
+      1.57079632679733
+    ],
+    "reverse_observed": true
+  },
+  {
+    "case": "reverse",
+    "planner": "auto",
+    "run": 2,
+    "success": true,
+    "wall_seconds": 7.689927420000004,
+    "sim_seconds": 6.596000000000004,
+    "distance": 1.9267638423503954,
+    "max_actual_speed": 0.699999976003731,
+    "final_pose": [
+      -2.430578896436083e-12,
+      -0.9267640685218427,
+      1.570796326797235
+    ],
+    "reverse_observed": true
+  },
+  {
+    "case": "reverse",
+    "planner": "auto",
+    "run": 3,
+    "success": true,
+    "wall_seconds": 7.81115954400002,
+    "sim_seconds": 6.697999999999979,
+    "distance": 1.9265509314608384,
+    "max_actual_speed": 0.6999999759954941,
+    "final_pose": [
+      -2.4519575239671367e-12,
+      -0.926551157632284,
+      1.5707963267972898
+    ],
+    "reverse_observed": true
+  }
+]

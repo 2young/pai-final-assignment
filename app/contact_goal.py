@@ -10,38 +10,7 @@ from route_metrics import MotionMetrics,simulation_time
 from motion_config import ContactSettings,MotionSettings
 from contact_speed import projected_gap,ApproachSpeedController,FEEDBACK_WALL_TIMEOUT
 from ros_feedback import spin_some
-
-
-def footprint_free(config, pose, target_id):
-    """Orientation-aware conservative rectangle, excluding only the touch target."""
-    x,y,yaw = pose
-    if not all(math.isfinite(v) for v in pose):
-        return False
-    left,bottom,right,top = config['robot']['footprint_bounds']
-    margin = config['robot']['margin']
-    c,s = math.cos(yaw),math.sin(yaw)
-    corners = [(x+c*a-s*b,y+s*a+c*b)
-               for a,b in [(left-margin,bottom-margin),(right+margin,bottom-margin),
-                           (right+margin,top+margin),(left-margin,top+margin)]]
-    x0,y0,x1,y1 = config['bounds']
-    if any(not (x0 < px < x1 and y0 < py < y1) for px,py in corners):
-        return False
-    for obj in config['walls']+config['objects']:
-        if obj['id'] == target_id:
-            continue
-        ox,oy = obj['center']
-        sx,sy = obj['size'][:2]
-        other = [(ox+a*sx/2,oy+b*sy/2) for a,b in [(-1,-1),(1,-1),(1,1),(-1,1)]]
-        separated = False
-        for ax,ay in [(1,0),(0,1),(c,s),(-s,c)]:
-            p = [px*ax+py*ay for px,py in corners]
-            q = [px*ax+py*ay for px,py in other]
-            if max(p) < min(q) or max(q) < min(p):
-                separated = True
-                break
-        if not separated:
-            return False
-    return True
+from footprint import footprint_free
 
 
 def target_ray_radius(target, outward_yaw):

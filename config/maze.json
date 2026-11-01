@@ -2,6 +2,7 @@
   "bounds": [-12, -12, 12, 12],
   "resolution": 0.1,
   "boundary_policy": "reachable_surface",
+  "planner_mode": "auto",
   "planning": {"initial_padding": 3.0, "expansion_step": 3.0, "max_attempts": 4, "max_cells": 60000, "max_expansions": 200000, "timeout": 8.0},
   "goal_mode": "contact",
   "robot": {"spawn": [-5, -4, 0], "radius": 1.85, "margin": 0.25, "footprint_bounds": [-1.72, -0.94, 0.31, 0.94]},

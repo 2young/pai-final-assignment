@@ -18,6 +18,9 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--min-speed',type=float,default=.8,
                         help='Wait for at least this commanded speed before injecting a fault')
+    parser.add_argument('--planner',choices=['auto','circle','hybrid'],default='auto')
+    parser.add_argument('--actions',nargs='+',choices=['move','pause','interrupt','delete'],
+                        default=['move','pause','interrupt','delete'])
     args=parser.parse_args()
     if not math.isfinite(args.min_speed) or args.min_speed<=0:parser.error('min-speed must be positive')
     rclpy.init();node=Node('pursuit_safety_check');commands=[]
@@ -29,11 +32,12 @@ def main():
         while time.monotonic()<end:rclpy.spin_once(node,timeout_sec=.01)
     process=None;paused=False
     try:
-        for action in ('move','pause','interrupt','delete'):
+        for action in args.actions:
             place('vehicle_blue',-4.5,5,.325);place('red_box',5,5,.4)
             place('west_wall',-8,0,.5)
             spin(.4);commands.clear()
             process=subprocess.Popen(['python3','/workspace/app/robot_control.py',
+                '--planner',args.planner,
                 '赤いオブジェクトまで行ってください'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
             deadline=time.monotonic()+20
             while not any(v>=args.min_speed for _,v,_ in commands) and time.monotonic()<deadline:

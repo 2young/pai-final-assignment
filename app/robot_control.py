@@ -49,6 +49,7 @@ def main():
     parser.add_argument("--goal-mode", choices=['contact','stand_off'],
                         help="Object goal: sensor-confirmed touch or stand-off")
     parser.add_argument('--controller',choices=['waypoint','pure_pursuit'],help='Override path follower')
+    parser.add_argument('--planner',choices=['auto','circle','hybrid'],help='Override path planner')
     args = parser.parse_args()
     if not Path(MODEL_PATH).is_file():
         raise SystemExit("Model not found. Run python3 app/train.py first.")
@@ -70,10 +71,17 @@ def main():
     from pose_provider import angle_difference
     from ros_feedback import spin_some
     config = load_config()
+    if args.planner:config['planner_mode']=args.planner
     if args.controller:
         config.setdefault('path_following',{})['controller']=args.controller
     from follower_config import FollowerSettings
     follower_settings=FollowerSettings.from_config(config)
+    if follower_settings.controller=='waypoint' and config.get('planner_mode','circle')!='circle':
+        if args.planner is not None:
+            raise ValueError('Waypoint controller requires --planner circle; pose routes require pure_pursuit')
+        config['planner_mode']='circle'
+    from pose_planner import PoseSettings
+    PoseSettings.from_config(config)
     goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
     if goal_mode not in ('contact','stand_off'):
         raise ValueError('goal_mode must be contact or stand_off')
@@ -158,11 +166,12 @@ def main():
         if args.goal is not None:
             live, start = prepare_navigation()
             yaw=navigator.planning_pose[2]
-            entry=plan_boundary_entry(live,navigator.planning_pose)
+            entry=(plan_boundary_entry(live,navigator.planning_pose)
+                   if live.get('planner_mode','circle')=='circle' else None)
             route_start=entry['goal'] if entry else start
             navigator.grid,route=adaptive_plan(live,route_start,goal=tuple(args.goal),start_yaw=yaw)
             score=route_score(route,yaw)
-            length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
+            length = score[1]
             print(f"A*: start={start}, goal={args.goal}, length={length:.2f}m, "
                   f"planned_turns={score[0]}, waypoints={route}", flush=True)
             validate_plan_start(start)
@@ -179,14 +188,15 @@ def main():
                 if goal_mode == 'contact' and can_resume_touch(live,navigator.provider.current(),target):
                     touch(navigator,live,target,contacts[target['id']],contact_guard)
                     continue
-                entry=plan_boundary_entry(live,navigator.planning_pose)
+                entry=(plan_boundary_entry(live,navigator.planning_pose)
+                       if live.get('planner_mode','circle')=='circle' else None)
                 route_start=entry['goal'] if entry else start
                 navigator.grid,route=adaptive_plan(live,route_start,target=target,start_yaw=yaw,
                                                    contact=goal_mode=='contact')
                 final_yaw=(math.atan2(target['center'][1]-route[-1][1],
                                      target['center'][0]-route[-1][0]) if goal_mode=='contact' else None)
                 score=route_score(route,yaw,final_yaw)
-                length = sum(math.dist(a, b) for a, b in zip(route, route[1:]))
+                length = score[1]
                 print(f"A*: start={start}, goal={route[-1]}, target={targets[text]['id']}, "
                       f"length={length:.2f}m, planned_turns={score[0]}, "
                       f"planned_yaw={math.degrees(score[2]):.1f}deg, waypoints={route}", flush=True)

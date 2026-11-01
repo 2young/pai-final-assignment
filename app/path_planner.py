@@ -16,6 +16,12 @@ def astar(grid, start, goal):
     for name,cell in [('start',start),('goal',goal)]:
         if not grid.free(cell):
             raise ValueError(f'{name} outside field or occupied: {cell}')
+    # An exhausted search proves the whole connected component, not just
+    # failure for one goal. Reuse that proof for other object approach points
+    # in this same immutable planning window; enlarged windows get new grids.
+    for component in getattr(grid,'_astar_components',()):
+        if (start in component) != (goal in component):
+            raise ValueError('No route to goal')
     queue=[(octile(start,goal),0.,start)]
     costs,parents={start:0.},{}
     while queue:
@@ -40,10 +46,17 @@ def astar(grid, start, goal):
             if updated < costs.get(nxt,math.inf):
                 costs[nxt],parents[nxt]=updated,current
                 heapq.heappush(queue,(updated+octile(nxt,goal),updated,nxt))
+    if not hasattr(grid,'_astar_components'):
+        grid._astar_components=[]
+    grid._astar_components.append(frozenset(costs))
     raise ValueError('No route to goal')
 
 
 def route_score(route, start_yaw=None, final_yaw=None):
+    if hasattr(route,'motions'):
+        pivots=sum(direction==0 for direction,_ in route.blocks())
+        return (pivots,sum(abs(m.v)*m.duration for m in route.motions),
+                sum(abs(m.w)*m.duration for m in route.motions))
     headings=[math.atan2(b[1]-a[1],b[0]-a[0])
               for a,b in zip(route,route[1:]) if math.dist(a,b)>1e-8]
     length=sum(math.dist(a,b) for a,b in zip(route,route[1:]))

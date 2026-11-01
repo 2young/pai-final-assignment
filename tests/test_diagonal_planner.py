@@ -36,6 +36,24 @@ def test_diagonal_cannot_squeeze_between_blocked_neighbors():
         astar(grid,(0,0),(1,1))
 
 
+def test_failed_search_reuses_component_for_other_approach_points():
+    grid=cells_grid({(2,y) for y in range(6)})
+    expansions=[]
+    grid.check_budget=lambda expansion=False: expansions.append(expansion) if expansion else None
+    with pytest.raises(ValueError,match='No route'):
+        astar(grid,(0,0),(5,0))
+    count=len(expansions)
+    assert count>0
+    # Both another start in the explored component and the reverse direction
+    # can reuse the proof without spending the shared expansion budget.
+    for start,goal in [((1,4),(4,4)),((5,3),(0,2))]:
+        with pytest.raises(ValueError,match='No route'):
+            astar(grid,start,goal)
+    assert len(expansions)==count
+    assert astar(grid,(0,0),(1,4))[-1]==(1,4)
+    assert astar(grid,(4,0),(5,4))[-1]==(5,4)
+
+
 @pytest.mark.parametrize('a,b,blocked',[
     ((.5,.5),(3.5,3.5),(2,1)),
     ((.5,1),(4.5,1),(2,0)),

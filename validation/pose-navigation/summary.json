@@ -1,0 +1,76 @@
+{
+  "circle/open_straight": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 20.433999999999997,
+    "median_wall_seconds": 21.428329343999962,
+    "max_actual_speed": 1.3999999521721929,
+    "pose_follower_runs": 0,
+    "minimum_footprint_clearance": 0.68,
+    "max_cross_track": 0.0,
+    "max_heading_error": null,
+    "max_control_ms": null
+  },
+  "circle/maze": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 36.99200000000002,
+    "median_wall_seconds": 38.55340160100002,
+    "max_actual_speed": 1.4000208039494604,
+    "pose_follower_runs": 0,
+    "minimum_footprint_clearance": 0.548,
+    "max_cross_track": 0.206,
+    "max_heading_error": null,
+    "max_control_ms": null
+  },
+  "auto/open_straight": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 18.122000000000014,
+    "median_wall_seconds": 19.09288863400002,
+    "max_actual_speed": 1.3999999521636088,
+    "pose_follower_runs": 3,
+    "minimum_footprint_clearance": 0.473,
+    "max_cross_track": 0.0,
+    "max_heading_error": null,
+    "max_control_ms": null,
+    "time_change_percent": -11.314475873544016
+  },
+  "auto/maze": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 36.72000000000003,
+    "median_wall_seconds": 38.57751755899994,
+    "max_actual_speed": 1.4000224881205734,
+    "pose_follower_runs": 0,
+    "minimum_footprint_clearance": 0.55,
+    "max_cross_track": 0.206,
+    "max_heading_error": null,
+    "max_control_ms": null,
+    "time_change_percent": -0.735294117647034
+  },
+  "auto/reported": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 43.553999999999974,
+    "median_wall_seconds": 45.890582729000016,
+    "max_actual_speed": 1.401153386330039,
+    "pose_follower_runs": 3,
+    "minimum_footprint_clearance": 0.152,
+    "max_cross_track": 0.062,
+    "max_heading_error": 12.1,
+    "max_control_ms": 1.15
+  },
+  "auto/reverse": {
+    "runs": 3,
+    "all_successful": true,
+    "median_sim_seconds": 6.663999999999987,
+    "median_wall_seconds": 7.7653573770001,
+    "max_actual_speed": 0.699999976003731,
+    "pose_follower_runs": 3,
+    "minimum_footprint_clearance": 0.31,
+    "max_cross_track": 0.0,
+    "max_heading_error": 0.0,
+    "max_control_ms": 0.99
+  }
+}
