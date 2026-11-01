@@ -1,0 +1,16 @@
+{
+  "baseline_commit": "19a76aa57f1e9c21a932d3a7f294afaf8e2ac3dd",
+  "baseline_reference": "../speedup/after",
+  "fresh_baseline": "stage-1.0",
+  "selected_inputs": [
+    "stage-1.4-turn",
+    "selected"
+  ],
+  "selected_limits": {
+    "linear": 1.4,
+    "angular": 1.0
+  },
+  "controller_code_changed": false,
+  "timing_basis": "Gazebo simulation timestamps",
+  "success_validation": "independent registered-wall footprint checks, target contact sensor, final zero Twist and stationary pose"
+}

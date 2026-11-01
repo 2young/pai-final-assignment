@@ -1,0 +1,263 @@
+{
+  "label": "speed-1.0",
+  "runs": 1,
+  "cases": {
+    "straight": [
+      [
+        -5,
+        4,
+        0
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "open_straight": [
+      [
+        -4.5,
+        5,
+        0
+      ],
+      [
+        5,
+        5
+      ]
+    ],
+    "corners": [
+      [
+        -5,
+        -4,
+        0
+      ],
+      [
+        5,
+        -1.95
+      ]
+    ],
+    "maze": [
+      [
+        -5,
+        -4,
+        0
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "narrow": [
+      [
+        -5,
+        -4,
+        1.5707963267948966
+      ],
+      [
+        -5,
+        3
+      ]
+    ],
+    "no_route": [
+      [
+        -5,
+        -4,
+        0
+      ],
+      [
+        -5,
+        -2
+      ]
+    ]
+  },
+  "controller_override": null,
+  "config": {
+    "bounds": [
+      -12,
+      -12,
+      12,
+      12
+    ],
+    "resolution": 0.1,
+    "boundary_policy": "reachable_surface",
+    "planning": {
+      "initial_padding": 3.0,
+      "expansion_step": 3.0,
+      "max_attempts": 4,
+      "max_cells": 60000,
+      "max_expansions": 200000,
+      "timeout": 8.0
+    },
+    "goal_mode": "contact",
+    "robot": {
+      "spawn": [
+        -5,
+        -4,
+        0
+      ],
+      "radius": 1.85,
+      "margin": 0.25,
+      "footprint_bounds": [
+        -1.72,
+        -0.94,
+        0.31,
+        0.94
+      ]
+    },
+    "navigation": {
+      "max_linear_speed": 1.0,
+      "max_angular_speed": 0.8,
+      "distance_gain": 0.8,
+      "heading_gain": 1.8
+    },
+    "path_following": {
+      "controller": "pure_pursuit",
+      "path_objective": "travel_time",
+      "tracking_margin": 0.1,
+      "lookahead_min": 0.35,
+      "lookahead_max": 1.0
+    },
+    "contact_approach": {
+      "max_speed": 0.4,
+      "touch_speed": 0.1,
+      "acceleration": 0.3,
+      "deceleration": 0.35,
+      "safety_buffer": 0.2,
+      "reaction_time": 0.2
+    },
+    "walls": [
+      {
+        "id": "detour",
+        "center": [
+          0,
+          -3
+        ],
+        "size": [
+          0.3,
+          7,
+          1
+        ]
+      },
+      {
+        "id": "corner",
+        "center": [
+          2,
+          0.5
+        ],
+        "size": [
+          4,
+          0.3,
+          1
+        ]
+      },
+      {
+        "id": "dead_end",
+        "center": [
+          -2,
+          0.5
+        ],
+        "size": [
+          0.3,
+          3,
+          1
+        ]
+      },
+      {
+        "id": "west_wall",
+        "center": [
+          -8,
+          0
+        ],
+        "size": [
+          0.6,
+          3,
+          1
+        ]
+      },
+      {
+        "id": "north_barrier",
+        "center": [
+          0,
+          9.5
+        ],
+        "size": [
+          3,
+          0.4,
+          1
+        ]
+      },
+      {
+        "id": "northwest_block",
+        "center": [
+          -8,
+          8
+        ],
+        "size": [
+          1.2,
+          1.2,
+          1
+        ]
+      },
+      {
+        "id": "northeast_block",
+        "center": [
+          8,
+          8
+        ],
+        "size": [
+          1.2,
+          1.2,
+          1
+        ]
+      },
+      {
+        "id": "southwest_block",
+        "center": [
+          -8,
+          -8
+        ],
+        "size": [
+          1.2,
+          1.2,
+          1
+        ]
+      },
+      {
+        "id": "southeast_block",
+        "center": [
+          8,
+          -8
+        ],
+        "size": [
+          1.2,
+          1.2,
+          1
+        ]
+      }
+    ],
+    "objects": [
+      {
+        "id": "red_box",
+        "aliases": [
+          "赤",
+          "red",
+          "red_box"
+        ],
+        "center": [
+          5,
+          4
+        ],
+        "size": [
+          0.6,
+          0.6,
+          0.8
+        ],
+        "color": [
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    ]
+  }
+}

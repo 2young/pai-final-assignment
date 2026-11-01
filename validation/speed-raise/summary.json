@@ -1,0 +1,149 @@
+{
+  "corners": {
+    "baseline_reference": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 39.50799999999998,
+      "wall_seconds": 40.32324297700006,
+      "max_speed": 1.0027944843172198,
+      "stopped_sim_seconds": 6.425999999999988,
+      "min_wall_circle_clearance": 0.54195050440301
+    },
+    "baseline_fresh": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 39.644000000000005,
+      "wall_seconds": 40.70188656099981,
+      "max_speed": 1.0018805098536236,
+      "stopped_sim_seconds": 6.153999999999996,
+      "min_wall_circle_clearance": 0.5419545741096226
+    },
+    "selected": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 37.434000000000005,
+      "wall_seconds": 38.15664055900015,
+      "max_speed": 1.4006919078537834,
+      "stopped_sim_seconds": 6.1200000000000045,
+      "min_wall_circle_clearance": 0.544856237412501
+    }
+  },
+  "maze": {
+    "baseline_reference": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 39.134000000000015,
+      "wall_seconds": 39.86912060000009,
+      "max_speed": 1.0029167683356328,
+      "stopped_sim_seconds": 6.222000000000094,
+      "min_wall_circle_clearance": 0.5425837555019895
+    },
+    "baseline_fresh": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 39.406,
+      "wall_seconds": 40.99782756100012,
+      "max_speed": 1.0028901846445395,
+      "stopped_sim_seconds": 6.425999999999991,
+      "min_wall_circle_clearance": 0.5426997293348137
+    },
+    "selected": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 37.26400000000001,
+      "wall_seconds": 38.208015350000096,
+      "max_speed": 1.4000208511709085,
+      "stopped_sim_seconds": 6.1200000000000045,
+      "min_wall_circle_clearance": 0.549953524247663
+    }
+  },
+  "narrow": {
+    "baseline_reference": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 19.448000000000093,
+      "wall_seconds": 20.095380342,
+      "max_speed": 0.9999999665808371,
+      "stopped_sim_seconds": 4.419999999999959,
+      "min_wall_circle_clearance": 0.8499999999996226
+    },
+    "selected": {
+      "runs": 2,
+      "failures": 0,
+      "sim_seconds": 19.074000000000012,
+      "wall_seconds": 19.66752713400001,
+      "max_speed": 1.3999999521819662,
+      "stopped_sim_seconds": 4.419999999999931,
+      "min_wall_circle_clearance": 0.8499999999977637
+    }
+  },
+  "no_route": {
+    "baseline_reference": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 4.079999999999927,
+      "wall_seconds": 4.649143502000015,
+      "max_speed": 0.0,
+      "stopped_sim_seconds": 3.6380000000000337,
+      "min_wall_circle_clearance": 1.8296737326377968
+    },
+    "selected": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 4.148000000000025,
+      "wall_seconds": 4.698709418999897,
+      "max_speed": 0.0,
+      "stopped_sim_seconds": 3.7059999999999604,
+      "min_wall_circle_clearance": 1.8296737326377959
+    }
+  },
+  "open_straight": {
+    "baseline_reference": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 22.03200000000004,
+      "wall_seconds": 23.036567218000073,
+      "max_speed": 0.9999999665738362,
+      "stopped_sim_seconds": 4.487999999999943,
+      "min_wall_circle_clearance": 1.150000000001095
+    },
+    "baseline_fresh": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 21.896,
+      "wall_seconds": 23.377961717999824,
+      "max_speed": 0.9999999665749203,
+      "stopped_sim_seconds": 4.352000000000001,
+      "min_wall_circle_clearance": 1.1500000000010995
+    },
+    "selected": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 20.944000000000017,
+      "wall_seconds": 21.52134546799971,
+      "max_speed": 1.3999999521689406,
+      "stopped_sim_seconds": 4.5219999999999345,
+      "min_wall_circle_clearance": 1.1500000000010675
+    }
+  },
+  "straight": {
+    "baseline_reference": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 26.180000000000064,
+      "wall_seconds": 26.862909511999987,
+      "max_speed": 1.0010169880051547,
+      "stopped_sim_seconds": 5.236000000000217,
+      "min_wall_circle_clearance": 0.5312570020115803
+    },
+    "selected": {
+      "runs": 2,
+      "failures": 0,
+      "sim_seconds": 25.704000000000008,
+      "wall_seconds": 26.266633844999888,
+      "max_speed": 1.4000814603714309,
+      "stopped_sim_seconds": 5.269999999999982,
+      "min_wall_circle_clearance": 0.5328399161089512
+    }
+  }
+}

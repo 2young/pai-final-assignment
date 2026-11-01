@@ -1,0 +1,20 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 4.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-8.1, -7.0, 8.0, 7.0], grid=161x140, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 151, 'raw_length': 15.372792206135786, 'final_length': 15.10374967836455, 'waypoints': 6}
+A*: start=(-5.000000226171448, -3.999999999998068), goal=(2.25, 4.0), target=red_box, length=15.10m, planned_turns=4, planned_yaw=195.7deg, waypoints=[(-5.000000226171448, -3.999999999998068), (-4.449999999999999, 4.350000000000001), (-3.4499999999999993, 4.350000000000001), (-1.4499999999999993, 4.350000000000001), (0.5500000000000007, 4.350000000000001), (2.25, 4.0)]
+FOLLOW_PATH: controller=pure_pursuit, length=15.01m, rounded_corners=2, stop_corners=0
+ARRIVED: pose=(2.182129143223453, 4.03173119698055, -0.3320256485895859), goal=(2.25, 4.0), error=0.075m, minimum_footprint_clearance=0.544m, elapsed=23.68s, sim_elapsed=23.43s, max_actual_speed=1.202m/s, max_cross_track=0.187m, rotation_episodes=2, total_yaw=213.6deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(4.396991987699709, 4.005911631972188, -0.009803649579289085), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=1, total_yaw=18.5deg, elapsed=10.20s, max_actual_speed=0.400m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=4, rotation_episodes=3, total_yaw=232.0deg

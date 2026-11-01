@@ -1,0 +1,20 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[-5.0, 3.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-8.1, -7.1000000000000005, -2.0, 6.0], grid=61x131, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 44, 'raw_length': 4.3, 'final_length': 4.250000226171451, 'waypoints': 2}
+A*: start=(-5.000000000001922, -4.000000226171451), goal=(-5.0, 0.25), target=red_box, length=4.25m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-5.000000000001922, -4.000000226171451), (-5.0, 0.25)]
+FOLLOW_PATH: controller=pure_pursuit, length=4.25m, rounded_corners=0, stop_corners=0
+ARRIVED: pose=(-5.000000000000128, 0.17649983405069314, 1.5707963267946552), goal=(-5.0, 0.25), error=0.074m, minimum_footprint_clearance=0.678m, elapsed=6.17s, sim_elapsed=6.12s, max_actual_speed=1.400m/s, max_cross_track=0.000m, rotation_episodes=0, total_yaw=0.0deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(-4.999999999999925, 2.4000597851702947, 1.5707963267950398), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=0, total_yaw=0.0deg, elapsed=8.72s, max_actual_speed=0.400m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=0, rotation_episodes=0, total_yaw=0.0deg
