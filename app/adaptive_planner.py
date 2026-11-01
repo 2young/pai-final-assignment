@@ -51,6 +51,9 @@ def adaptive_plan(config,start,target=None,goal=None,start_yaw=None,contact=Fals
             else:
                 route=plan_to_object(grid,start,target,start_yaw=start_yaw)
             budget.check()
+            details=grid.plan_stats.get(tuple(route))
+            if details:
+                print(f'PLAN_STATS: {details}',flush=True)
             # Budget is only for this command's planning, not later tracking.
             grid.budget=None
             if grid._planning_view is not None:

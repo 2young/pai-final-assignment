@@ -1,0 +1,19 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.6000000000000005, 2.0, 8.0, 8.1], grid=156x61, operating_bounds=[-12, -12, 12, 12]
+A*: start=(-4.500000226171448, 5.00000000000193), goal=(2.25, 5.0), target=red_box, length=6.75m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.500000226171448, 5.00000000000193), (2.25, 5.0)]
+Waypoint 1: (2.25, 5.0), error=0.098m
+ARRIVED: pose=(2.1556496067062136, 5.0000000000001386, -2.9734903741815127e-13), goal=(2.25, 5.0), error=0.094m, minimum_footprint_clearance=0.694m, elapsed=11.7s, rotation_episodes=0, total_yaw=0.0deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(4.400060337916195, 5.000000000000081, -1.500532939312358e-13), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=0, total_yaw=0.0deg, elapsed=8.75s, max_actual_speed=0.400m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=0, rotation_episodes=0, total_yaw=0.0deg

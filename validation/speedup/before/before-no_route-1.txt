@@ -1,0 +1,3 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Aborted: red_box: overlaps detour (conservative bounds)

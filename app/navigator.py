@@ -5,6 +5,7 @@ from pose_provider import PoseProvider
 from motion_config import MotionSettings
 from route_metrics import MotionMetrics
 from ros_feedback import spin_some
+from follower_config import FollowerSettings
 
 
 def steering(pose, goal, settings=MotionSettings()):
@@ -31,6 +32,8 @@ class Navigator:
         self.provider = PoseProvider(node)
         self.settings = MotionSettings.from_config(config if config is not None else
                                                    (grid.config if grid is not None else {}))
+        self.follower_settings=FollowerSettings.from_config(config if config is not None else
+                                                    (grid.config if grid is not None else {}))
 
     def current(self):
         deadline = time.monotonic()+10
@@ -41,6 +44,8 @@ class Navigator:
         raise RuntimeError('No world pose; start maze launcher and pose bridge')
 
     def follow(self, route, timeout=240, guard=None):
+        if getattr(self,'follower_settings',None) is not None and self.follower_settings.controller=='pure_pursuit':
+            return self._follow_pursuit(route,timeout,guard)
         from geometry_msgs.msg import Twist
         deadline = time.monotonic()+timeout
         minimum_clearance = math.inf
@@ -93,6 +98,54 @@ class Navigator:
                   f'elapsed={time.monotonic()-started:.1f}s, '
                   f'rotation_episodes={metrics.episodes}, '
                   f'total_yaw={math.degrees(metrics.rotation):.1f}deg', flush=True)
+            return metrics.summary()
+        finally:
+            stop(self.pub)
+
+    def _follow_pursuit(self,route,timeout,guard):
+        from geometry_msgs.msg import Twist
+        from path_geometry import rounded_path,ArcPath
+        from pure_pursuit import PursuitController
+        from route_metrics import simulation_time
+        started=time.monotonic();metrics=MotionMetrics();minimum=math.inf
+        sim_start=None;best=0.;progress_time=started
+        try:
+            points,stops,rounded=rounded_path(self.grid,route,self.follower_settings.smoothing_distance)
+            path=ArcPath(points,stops)
+            controller=PursuitController(self.grid,path,self.settings,self.follower_settings)
+            print(f'FOLLOW_PATH: controller=pure_pursuit, length={path.length:.2f}m, '
+                  f'rounded_corners={rounded}, stop_corners={len(stops)}',flush=True)
+            while True:
+                spin_some(self.node,timeout_sec=.02)
+                if guard is not None:guard()
+                pose=self.provider.current()
+                if time.monotonic()-self.provider.received>self.follower_settings.pose_timeout:
+                    raise RuntimeError('Pursuit robot pose missing or stale')
+                stamp=self.provider.stamp;now=simulation_time(stamp)
+                if sim_start is None:sim_start=now
+                if not self.grid.point_free(pose[:2]):
+                    raise RuntimeError('Robot outside safe map clearance')
+                metrics.observe_pose(pose,stamp)
+                minimum=min(minimum,self.grid.clearance(pose[:2]))
+                v,w,done=controller.command(pose,now)
+                if done:break
+                # Rotation is meaningful progress while aligning at a corner.
+                if controller.progress>best+.02 or abs(w)>.02:
+                    best=max(best,controller.progress);progress_time=time.monotonic()
+                if time.monotonic()-started>timeout or time.monotonic()-progress_time>25:
+                    raise RuntimeError('Pursuit timeout / stalled')
+                msg=Twist();msg.linear.x=v;msg.angular.z=w
+                metrics.observe_command(v,w);self.pub.publish(msg);time.sleep(.02)
+            stop(self.pub);spin_some(self.node)
+            if guard is not None:guard()
+            final=self.provider.current();error=math.dist(final[:2],route[-1])
+            if error>.10 or not self.grid.point_free(final[:2]):
+                raise RuntimeError('Final stopped pose is outside goal tolerance or safe map')
+            print(f'ARRIVED: pose={final}, goal={route[-1]}, error={error:.3f}m, '
+                  f'minimum_footprint_clearance={minimum:.3f}m, elapsed={time.monotonic()-started:.2f}s, '
+                  f'sim_elapsed={simulation_time(self.provider.stamp)-sim_start:.2f}s, '
+                  f'max_actual_speed={metrics.max_speed:.3f}m/s, max_cross_track={controller.max_error:.3f}m, '
+                  f'rotation_episodes={metrics.episodes}, total_yaw={math.degrees(metrics.rotation):.1f}deg',flush=True)
             return metrics.summary()
         finally:
             stop(self.pub)

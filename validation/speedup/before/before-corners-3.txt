@@ -1,0 +1,24 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, -1.95], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-8.1, -7.1000000000000005, 8.0, 1.1], grid=161x82, operating_bounds=[-12, -12, 12, 12]
+Planning window 1: No reachable approach point with safe contact corridor; expanding if possible
+Planning window 2: bounds=[-11.100000000000001, -10.100000000000001, 11.0, 4.1000000000000005], grid=221x142, operating_bounds=[-12, -12, 12, 12]
+A*: start=(-5.000000226171448, -4.000000000597498), goal=(5.0, -4.7), target=red_box, length=15.25m, planned_turns=4, planned_yaw=214.5deg, waypoints=[(-5.000000226171448, -4.000000000597498), (-2.450000000000001, -8.850000000000001), (0.5499999999999989, -8.850000000000001), (2.4499999999999993, -8.850000000000001), (5.0, -4.7)]
+Waypoint 1: (-2.450000000000001, -8.850000000000001), error=0.024m
+Waypoint 2: (0.5499999999999989, -8.850000000000001), error=0.025m
+Waypoint 3: (2.4499999999999993, -8.850000000000001), error=0.024m
+Waypoint 4: (5.0, -4.7), error=0.100m
+ARRIVED: pose=(4.951565768134502, -4.780171871221013, 1.0273245102646376), goal=(5.0, -4.7), error=0.094m, minimum_footprint_clearance=0.507m, elapsed=42.1s, rotation_episodes=3, total_yaw=188.0deg
+CONTACT approach: target=red_box, max_speed=0.4m/s, touch_speed=0.1m/s
+CONTACT_REACHED: target=red_box, pose=(4.991692554873138, -2.5546418485194877, 1.5570573470067042), collisions=('red_box::body::collision', 'vehicle_blue::chassis::collision'), rotation_episodes=1, total_yaw=30.4deg, elapsed=10.55s, max_actual_speed=0.400m/s, pre_contact_actual_speed=0.100m/s
+NAVIGATION_SUMMARY: planned_turns=4, rotation_episodes=4, total_yaw=218.3deg

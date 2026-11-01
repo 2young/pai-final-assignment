@@ -2,7 +2,7 @@
 import math
 import subprocess
 import time
-from path_planner import plan,route_score
+from path_planner import plan,route_score,selection_score
 from target_resolver import approach_candidates
 from pose_provider import angle_difference
 from navigator import stop
@@ -105,7 +105,7 @@ def plan_contact(grid, start, target, start_yaw=None):
             continue
     if not choices:
         raise ValueError('No reachable approach point with safe contact corridor')
-    return min(choices,key=lambda item:route_score(item[0],start_yaw,item[1]))[0]
+    return min(choices,key=lambda item:selection_score(grid,item[0],start_yaw,item[1]))[0]
 
 
 class ContactMonitor:

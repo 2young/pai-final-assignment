@@ -6,10 +6,11 @@ from pose_provider import angle_difference
 from navigator import stop
 from contact_speed import FEEDBACK_WALL_TIMEOUT
 from ros_feedback import spin_some
+from grid_map import tracking_margin
 
 
 def center_clear(config,point):
-    p=config['robot']['radius']+config['robot']['margin']+.10+math.sqrt(2)*config['resolution']
+    p=config['robot']['radius']+config['robot']['margin']+tracking_margin(config)+math.sqrt(2)*config['resolution']
     x,y=point;x0,y0,x1,y1=config['bounds']
     if not (x0+p<x<x1-p and y0+p<y<y1-p):return False
     return not any(abs(x-o['center'][0])<=o['size'][0]/2+p and
@@ -19,7 +20,7 @@ def center_clear(config,point):
 
 def plan_boundary_entry(config,pose):
     x,y,yaw=pose;x0,y0,x1,y1=config['bounds']
-    p=config['robot']['radius']+config['robot']['margin']+.10+math.sqrt(2)*config['resolution']
+    p=config['robot']['radius']+config['robot']['margin']+tracking_margin(config)+math.sqrt(2)*config['resolution']
     if x0+p<x<x1-p and y0+p<y<y1-p:
         return None
     if not footprint_free(config,pose,None):

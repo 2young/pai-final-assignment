@@ -1,0 +1,2 @@
+label,case,run,success,wall_seconds,sim_seconds,distance,max_speed,stopped_sim_seconds,rotation_episodes,total_yaw_degrees,min_wall_circle_clearance,waypoints,planned_length
+tuned-waypoint,maze,1,True,51.11710039900004,50.422000000000025,17.487759638139732,1.0000860483325453,7.615999999999872,5,226.91431442117218,0.47955680910690957,5,15.10374967836455

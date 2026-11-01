@@ -4,7 +4,7 @@ import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from grid_map import load_config
-from motion_config import MotionSettings,DRIVE_ACCELERATION
+from motion_config import MotionSettings,DRIVE_ACCELERATION,DRIVE_ANGULAR_ACCELERATION
 
 
 def add_pose_publisher(model):
@@ -74,6 +74,8 @@ def generate(source, output, config):
     for name, value in [('odom_publish_frequency', '30'),
                         ('max_linear_acceleration',str(DRIVE_ACCELERATION)),
                         ('min_linear_acceleration',str(-DRIVE_ACCELERATION)),
+                        ('max_angular_acceleration',str(DRIVE_ANGULAR_ACCELERATION)),
+                        ('min_angular_acceleration',str(-DRIVE_ANGULAR_ACCELERATION)),
                         ('max_linear_velocity', str(settings.max_linear_speed)),
                         ('min_linear_velocity', str(-settings.max_linear_speed)),
                         ('max_angular_velocity', str(settings.max_angular_speed)),

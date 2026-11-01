@@ -53,6 +53,22 @@ def route_score(route, start_yaw=None, final_yaw=None):
     return sum(d>TURN_EPS for d in changes),length,sum(changes)
 
 
+def _edge_cost(grid,length,angle):
+    config=getattr(grid,'config',{})
+    if config.get('path_following',{}).get('path_objective','turns')=='travel_time':
+        speeds=config.get('navigation',{})
+        return (length/speeds.get('max_linear_speed',.7)+.4*angle/speeds.get('max_angular_speed',.5),length,angle)
+    return int(angle>TURN_EPS),length,angle
+
+
+def selection_score(grid,route,start_yaw=None,final_yaw=None):
+    turns,length,angle=route_score(route,start_yaw,final_yaw)
+    first,_,_=_edge_cost(grid,length,angle)
+    if getattr(grid,'config',{}).get('path_following',{}).get('path_objective','turns')=='turns':
+        first=turns
+    return first,length,angle
+
+
 def _candidates(grid, points, start_yaw, final_yaw):
     """Retain A* bends for connectivity; add samples and orientation joins."""
     candidates=[points[0],points[-1]]
@@ -120,7 +136,8 @@ def simplify_path(grid, points, start_yaw=None, final_yaw=None):
                   math.atan2(nodes[current][1]-nodes[previous][1],nodes[current][0]-nodes[previous][0]))
         if current==1:
             delta=0. if final_yaw is None or incoming is None else abs(angle_difference(final_yaw,incoming))
-            complete=(turns+int(delta>TURN_EPS),length,angle+delta)
+            increment=_edge_cost(grid,0.,delta)
+            complete=tuple(a+b for a,b in zip(cost,increment))
             if best is None or complete<best:
                 best,goal_state=complete,state
             continue
@@ -128,7 +145,8 @@ def simplify_path(grid, points, start_yaw=None, final_yaw=None):
             if nxt==previous or nxt==0:
                 continue
             delta=0. if incoming is None else abs(angle_difference(heading,incoming))
-            updated=(turns+int(delta>TURN_EPS),length+segment,angle+delta)
+            increment=_edge_cost(grid,segment,delta)
+            updated=tuple(a+b for a,b in zip(cost,increment))
             next_state=(current,nxt)
             if updated<costs.get(next_state,(math.inf,math.inf,math.inf)):
                 costs[next_state],parents[next_state]=updated,state
@@ -160,4 +178,10 @@ def plan(grid, start, goal, start_yaw=None, final_yaw=None):
     route=simplify_path(planning,points,start_yaw,final_yaw)
     if not all(planning.segment_free(a,b) for a,b in zip(route,route[1:])):
         raise ValueError('Unsafe path connector')
+    if hasattr(grid,'plan_stats'):
+        grid.plan_stats[tuple(route)]={
+            'raw_cells':len(cells),
+            'raw_length':sum(math.dist(a,b)*planning.resolution for a,b in zip(cells,cells[1:])),
+            'final_length':sum(math.dist(a,b) for a,b in zip(route,route[1:])),
+            'waypoints':len(route)}
     return route

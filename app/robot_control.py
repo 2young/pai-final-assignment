@@ -48,6 +48,7 @@ def main():
     parser.add_argument("--goal", nargs=2, type=float, metavar=("X", "Y"))
     parser.add_argument("--goal-mode", choices=['contact','stand_off'],
                         help="Object goal: sensor-confirmed touch or stand-off")
+    parser.add_argument('--controller',choices=['waypoint','pure_pursuit'],help='Override path follower')
     args = parser.parse_args()
     if not Path(MODEL_PATH).is_file():
         raise SystemExit("Model not found. Run python3 app/train.py first.")
@@ -69,6 +70,10 @@ def main():
     from pose_provider import angle_difference
     from ros_feedback import spin_some
     config = load_config()
+    if args.controller:
+        config.setdefault('path_following',{})['controller']=args.controller
+    from follower_config import FollowerSettings
+    follower_settings=FollowerSettings.from_config(config)
     goal_mode = args.goal_mode or config.get('goal_mode','stand_off')
     if goal_mode not in ('contact','stand_off'):
         raise ValueError('goal_mode must be contact or stand_off')
@@ -113,6 +118,8 @@ def main():
             from navigator import Navigator
             from object_tracker import ObjectTracker
             tracker = ObjectTracker(node, config)
+            navigation_guard=(lambda:tracker.assert_unchanged(max_age=follower_settings.pose_timeout)
+                              if follower_settings.controller=='pure_pursuit' else tracker.assert_unchanged())
             navigator = Navigator(node, pub, None, config=config)
             if goal_mode == 'contact' and targets:
                 from motion_config import ContactSettings
@@ -161,7 +168,7 @@ def main():
             validate_plan_start(start)
             if entry:
                 execute_boundary_entry(navigator,live,entry,lambda:tracker.assert_unchanged(max_age=.3))
-            navigator.follow(route, guard=tracker.assert_unchanged)
+            navigator.follow(route, guard=navigation_guard)
         for text, intent in results:
             if intent == "GO_TO_OBJECT":
                 live, start = prepare_navigation(targets[text]['id'] if goal_mode=='contact' else None)
@@ -187,7 +194,7 @@ def main():
                 if entry:
                     execute_boundary_entry(navigator,live,entry,contact_guard if goal_mode=='contact'
                                            else lambda:tracker.assert_unchanged(max_age=.3))
-                phases=[navigator.follow(route, guard=tracker.assert_unchanged)]
+                phases=[navigator.follow(route, guard=navigation_guard)]
                 if goal_mode == 'contact':
                     phases.append(touch(navigator,live,target,contacts[target['id']],contact_guard))
                 print(f"NAVIGATION_SUMMARY: planned_turns={score[0]}, "

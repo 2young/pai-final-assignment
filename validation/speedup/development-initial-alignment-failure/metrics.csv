@@ -1,0 +1,2 @@
+label,case,run,success,wall_seconds,sim_seconds,distance,max_speed,stopped_sim_seconds,rotation_episodes,total_yaw_degrees,min_wall_circle_clearance,waypoints,planned_length
+after,maze,1,False,7.968132671000035,7.072000000000003,1.1263905996844426,0.7723115272836902,3.298000000000002,1,93.69003280570881,1.2906550224914146,5,15.103749678364549

@@ -1,0 +1,182 @@
+{
+  "corners": {
+    "after": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 39.50799999999998,
+      "wall_seconds": 40.32324297700006,
+      "distance": 17.338083558426824,
+      "max_speed": 1.0027944843172198,
+      "stopped_sim_seconds": 6.425999999999988,
+      "rotation_episodes": 2.0,
+      "total_yaw_degrees": 247.34999354969554,
+      "min_wall_circle_clearance": 0.54195050440301,
+      "waypoints": 5.0,
+      "planned_length": 15.250338933077373
+    },
+    "before": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 53.20999999999998,
+      "wall_seconds": 54.106903149000004,
+      "distance": 17.579056824516776,
+      "max_speed": 0.7002374075733748,
+      "stopped_sim_seconds": 9.316000000000116,
+      "rotation_episodes": 4.0,
+      "total_yaw_degrees": 215.26109106746696,
+      "min_wall_circle_clearance": 0.5171889703004537,
+      "waypoints": 4.0,
+      "planned_length": 15.250338933196065
+    }
+  },
+  "maze": {
+    "after": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 39.134000000000015,
+      "wall_seconds": 39.86912060000009,
+      "distance": 17.315857998060256,
+      "max_speed": 1.0029167683356328,
+      "stopped_sim_seconds": 6.222000000000094,
+      "rotation_episodes": 3.0,
+      "total_yaw_degrees": 231.2547792402809,
+      "min_wall_circle_clearance": 0.5425837555019895,
+      "waypoints": 5.0,
+      "planned_length": 15.103749678783798
+    },
+    "before": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 51.884000000000015,
+      "wall_seconds": 52.93028460700003,
+      "distance": 18.72173180157109,
+      "max_speed": 0.7002625802995652,
+      "stopped_sim_seconds": 9.8599999999999,
+      "rotation_episodes": 3.0,
+      "total_yaw_degrees": 217.70500879159567,
+      "min_wall_circle_clearance": 0.5797195410534837,
+      "waypoints": 3.0,
+      "planned_length": 15.48497552205681
+    }
+  },
+  "narrow": {
+    "after": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 19.448000000000093,
+      "wall_seconds": 20.095380342,
+      "distance": 6.4000806367416665,
+      "max_speed": 0.9999999665808371,
+      "stopped_sim_seconds": 4.419999999999959,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 2.0463688820536267e-10,
+      "min_wall_circle_clearance": 0.8499999999996226,
+      "waypoints": 2.0,
+      "planned_length": 4.250000226171451
+    },
+    "before": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 21.04600000000005,
+      "wall_seconds": 21.65139280099993,
+      "distance": 6.400049225572502,
+      "max_speed": 0.6999999792593882,
+      "stopped_sim_seconds": 4.385999999999967,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 2.634898720311636e-10,
+      "min_wall_circle_clearance": 0.8499999999998047,
+      "waypoints": 2.0,
+      "planned_length": 4.2500002261714505
+    }
+  },
+  "no_route": {
+    "after": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 4.079999999999927,
+      "wall_seconds": 4.649143502000015,
+      "distance": 0.0,
+      "max_speed": 0.0,
+      "stopped_sim_seconds": 3.6380000000000337,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 0.0,
+      "min_wall_circle_clearance": 1.8296737326377968,
+      "waypoints": 0.0,
+      "planned_length": 0.0
+    },
+    "before": {
+      "runs": 1,
+      "failures": 0,
+      "sim_seconds": 4.114000000000033,
+      "wall_seconds": 4.653074376999939,
+      "distance": 0.0,
+      "max_speed": 0.0,
+      "stopped_sim_seconds": 3.671999999999912,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 0.0,
+      "min_wall_circle_clearance": 1.8296737326377968,
+      "waypoints": 0.0,
+      "planned_length": 0.0
+    }
+  },
+  "open_straight": {
+    "after": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 22.03200000000004,
+      "wall_seconds": 23.036567218000073,
+      "distance": 8.900106000295235,
+      "max_speed": 0.9999999665738362,
+      "stopped_sim_seconds": 4.487999999999943,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 1.546164089595339e-10,
+      "min_wall_circle_clearance": 1.150000000001095,
+      "waypoints": 2.0,
+      "planned_length": 6.750000226171448
+    },
+    "before": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 24.99000000000001,
+      "wall_seconds": 25.621339261000003,
+      "distance": 8.900060635017276,
+      "max_speed": 0.6999999791742014,
+      "stopped_sim_seconds": 4.759999999999877,
+      "rotation_episodes": 0.0,
+      "total_yaw_degrees": 1.723674101610464e-10,
+      "min_wall_circle_clearance": 1.150000000000969,
+      "waypoints": 2.0,
+      "planned_length": 6.750000226171448
+    }
+  },
+  "straight": {
+    "after": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 26.180000000000064,
+      "wall_seconds": 26.862909511999987,
+      "distance": 9.597967284966792,
+      "max_speed": 1.0010169880051547,
+      "stopped_sim_seconds": 5.236000000000217,
+      "rotation_episodes": 2.0,
+      "total_yaw_degrees": 92.2739291768252,
+      "min_wall_circle_clearance": 0.5312570020115803,
+      "waypoints": 4.0,
+      "planned_length": 7.387575927360202
+    },
+    "before": {
+      "runs": 3,
+      "failures": 0,
+      "sim_seconds": 38.96399999999999,
+      "wall_seconds": 39.58010368499998,
+      "distance": 11.13901779914843,
+      "max_speed": 0.7002074528535849,
+      "stopped_sim_seconds": 7.6839999999999975,
+      "rotation_episodes": 3.0,
+      "total_yaw_degrees": 166.925001132108,
+      "min_wall_circle_clearance": 0.8118983088916143,
+      "waypoints": 3.0,
+      "planned_length": 7.857661017478691
+    }
+  }
+}

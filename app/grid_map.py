@@ -6,6 +6,10 @@ from pathlib import Path
 DEFAULT_CONFIG = Path(__file__).resolve().parents[1] / 'config' / 'maze.json'
 
 
+def tracking_margin(config):
+    return config.get('path_following',{}).get('tracking_margin',.10)
+
+
 def load_config(path=DEFAULT_CONFIG):
     return json.loads(Path(path).read_text())
 
@@ -24,6 +28,7 @@ class GridMap:
         self.padding = config['robot']['radius'] + config['robot']['margin'] + tracking_margin
         self.tracking_margin = tracking_margin
         self._planning_view = None
+        self.plan_stats = {}
         x0, y0, x1, y1 = self.bounds
         self.width = math.floor((x1-x0)/self.resolution+1e-9)
         self.height = math.floor((y1-y0)/self.resolution+1e-9)
@@ -91,7 +96,7 @@ class GridMap:
         if self.tracking_margin:
             return self
         if self._planning_view is None:
-            self._planning_view = GridMap(self.config, tracking_margin=.10,
+            self._planning_view = GridMap(self.config, tracking_margin=tracking_margin(self.config),
                                           bounds=self.bounds,budget=self.budget)
         return self._planning_view
 

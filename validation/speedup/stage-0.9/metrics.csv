@@ -1,0 +1,2 @@
+label,case,run,success,wall_seconds,sim_seconds,distance,max_speed,stopped_sim_seconds,rotation_episodes,total_yaw_degrees,min_wall_circle_clearance,waypoints,planned_length
+stage-0.9,open_straight,1,True,24.469200968999985,23.732,8.900016498977907,0.8999999701739473,4.522,0,1.604939433984795e-10,1.1500000000011554,2,6.750000226171448

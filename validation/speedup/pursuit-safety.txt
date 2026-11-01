@@ -1,0 +1,76 @@
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.6000000000000005, 2.0, 8.0, 8.1], grid=156x61, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 69, 'raw_length': 6.800000000000001, 'final_length': 6.750000226171448, 'waypoints': 2}
+A*: start=(-4.500000226171448, 5.000000000001929), goal=(2.25, 5.0), target=red_box, length=6.75m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.500000226171448, 5.000000000001929), (2.25, 5.0)]
+FOLLOW_PATH: controller=pure_pursuit, length=6.75m, rounded_corners=0, stop_corners=0
+Aborted: west_wall: object moved during navigation; issue command again
+
+PASS: move, first_zero=0.283s, peak=0.901m/s
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.6000000000000005, 2.0, 8.0, 8.1], grid=156x61, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 69, 'raw_length': 6.800000000000001, 'final_length': 6.750000226171448, 'waypoints': 2}
+A*: start=(-4.500000226171448, 5.00000000000193), goal=(2.25, 5.0), target=red_box, length=6.75m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.500000226171448, 5.00000000000193), (2.25, 5.0)]
+FOLLOW_PATH: controller=pure_pursuit, length=6.75m, rounded_corners=0, stop_corners=0
+Aborted: detour: contact object pose missing or stale
+
+PASS: pause, first_zero=0.460s, peak=0.901m/s
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.5, 2.0, 8.0, 8.1], grid=155x61, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 68, 'raw_length': 6.7, 'final_length': 6.7254693283542135, 'waypoints': 2}
+A*: start=(-4.4754693283542135, 5.000000000002202), goal=(2.25, 5.0), target=red_box, length=6.73m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.4754693283542135, 5.000000000002202), (2.25, 5.0)]
+FOLLOW_PATH: controller=pure_pursuit, length=6.73m, rounded_corners=0, stop_corners=0
+Interrupted
+
+PASS: interrupt, first_zero=0.000s, peak=0.816m/s
+AI inference: '赤いオブジェクトまで行ってください' -> GO_TO_OBJECT
+Waiting for ROS-Gazebo bridge subscription...
+Live obstacle: detour, center=[0.0, -3.0], yaw=0.000, AABB=[0.3, 7.0], crosses_boundary=False
+Live obstacle: corner, center=[2.0, 0.5], yaw=0.000, AABB=[4.0, 0.3], crosses_boundary=False
+Live obstacle: dead_end, center=[-2.0, 0.5], yaw=0.000, AABB=[0.3, 3.0], crosses_boundary=False
+Live obstacle: west_wall, center=[-8.0, 0.0], yaw=0.000, AABB=[0.6, 3.0], crosses_boundary=False
+Live obstacle: north_barrier, center=[0.0, 9.5], yaw=0.000, AABB=[3.0, 0.4], crosses_boundary=False
+Live obstacle: northwest_block, center=[-8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: northeast_block, center=[8.0, 8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southwest_block, center=[-8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live obstacle: southeast_block, center=[8.0, -8.0], yaw=0.000, AABB=[1.2, 1.2], crosses_boundary=False
+Live object: red_box, center=[5.0, 5.0], yaw=0.000, AABB=[0.6, 0.6], crosses_boundary=False
+Planning window 1: bounds=[-7.6000000000000005, 2.0, 8.0, 8.1], grid=156x61, operating_bounds=[-12, -12, 12, 12]
+PLAN_STATS: {'raw_cells': 69, 'raw_length': 6.800000000000001, 'final_length': 6.750000226171448, 'waypoints': 2}
+A*: start=(-4.500000226171448, 5.000000000001931), goal=(2.25, 5.0), target=red_box, length=6.75m, planned_turns=0, planned_yaw=0.0deg, waypoints=[(-4.500000226171448, 5.000000000001931), (2.25, 5.0)]
+FOLLOW_PATH: controller=pure_pursuit, length=6.75m, rounded_corners=0, stop_corners=0
+Aborted: west_wall: contact object pose missing or stale
+
+PASS: delete, first_zero=0.453s, peak=0.986m/s

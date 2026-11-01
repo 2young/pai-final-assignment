@@ -1,7 +1,7 @@
 """Resolve registered metadata only. This is not camera-based recognition."""
 import math
 import re
-from path_planner import plan,route_score
+from path_planner import plan,route_score,selection_score
 
 
 def resolve_target(text, config):
@@ -47,4 +47,4 @@ def plan_to_object(grid, start, obj, start_yaw=None):
             continue
     if not routes:
         raise ValueError('No reachable approach point')
-    return min(routes, key=lambda r: route_score(r,start_yaw))
+    return min(routes, key=lambda r: selection_score(grid,r,start_yaw))

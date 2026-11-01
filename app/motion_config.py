@@ -27,6 +27,7 @@ class MotionSettings:
 
 # Explicitly applied to the generated DiffDrive, also bounds contact ramps.
 DRIVE_ACCELERATION = 1.0
+DRIVE_ANGULAR_ACCELERATION = 2.0
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,19 @@
+{
+  "baseline_commit": "768fe7a9b0c9fa9e201639bc7e30fb6e99147899",
+  "baseline_workspace_was_clean": true,
+  "baseline_archive": "/tmp/pai-speed-baseline",
+  "after_source": "working tree implementation accompanying this report",
+  "formal_comparison_inputs": [
+    "before",
+    "before-extra",
+    "after"
+  ],
+  "superseded_no_route": "before-extra supersedes the overlapping-target check in before/no_route",
+  "excluded_development_trial": "development-initial-alignment-failure",
+  "time_basis": "Gazebo simulation timestamp for sim_seconds; monotonic wall clock for wall_seconds",
+  "collision_validation": "registered wall geometry and independent world-pose footprint checks, target contact sensor",
+  "repeats_per_driving_case": 3,
+  "final_driving_successes": 15,
+  "final_driving_failures": 0,
+  "gui_visual_or_video_validation": false
+}
